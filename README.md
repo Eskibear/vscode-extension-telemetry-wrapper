@@ -2,6 +2,7 @@ Inject code to send telemetry to Application Insight when register commands.
 It sends `commandStart` and `commandEnd`/`commandError` for execution of each the command.
 
 ## Usage
+
 ```
 import { TelemetryWrapper } from "vscode-extension-telemetry-wrapper";
 ```
@@ -49,4 +50,50 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 }
 ```
+
+Result:
+
+* publisher.extension/commandStart
+* publisher.extension/initilizeDone
+* publisher.extension/preTasksDone
+* publisher.extension/commandEnd
+
+
+**Inject customized properties into the transaction**
+```
+export function activate(context: vscode.ExtensionContext): void {
+    TelemetryWrapper.registerCommand(context, "commandName", (t: Transaction) => {
+        return (args: any[]): void => {
+            t.customProperties.finishedSteps = [];
+            // TODO: initialize
+            t.customProperties.finishedSteps.push("initialize");
+            // TODO: pre tasks
+            t.customProperties.finishedSteps.push("preTasks");
+            // TODO: final tasks
+            t.customProperties.finishedSteps.push("finalTasks");
+        }
+    });
+}
+```
+
+Result:
+
+* publisher.extension/commandStart
+    ```
+    {
+        transectionId: xxx
+    }
+    ```
+* publisher.extension/commandEnd
+    ```
+    {
+        transectionId: xxx,
+        finishedSteps: [
+            "initialize",
+            "preTasks",
+             "finalTasks"
+        ]
+    }
+    ```
+
 
