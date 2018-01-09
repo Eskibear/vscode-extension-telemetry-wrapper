@@ -5,7 +5,12 @@ It sends `commandStart` and `commandEnd`/`commandError` for execution of each th
 
 ```
 import { TelemetryWrapper } from "vscode-extension-telemetry-wrapper";
-TelemetryWrapper.initilize(publisher, extensionName, version(), aiKey);
+
+// initialize with specific parameters
+TelemetryWrapper.initilize(publisher, extensionName, version, aiKey);
+
+// or directly from Json file, e.g. package.json
+TelemetryWrapper.initilizeFromJsonFile(context.asAbsolutePath("./package.json"));
 ```
 
 For compatibility, the legacy `TelemetryReporter` can be accessed by `TelemetryWrapper.getReporter()`.
@@ -15,11 +20,13 @@ For compatibility, the legacy `TelemetryReporter` can be accessed by `TelemetryW
 
 ```
 export function activate(context: vscode.ExtensionContext): void {
-    context.subscriptions.push(vscode.commands.registerCommand("commandName", 
+
+    vscode.commands.registerCommand("commandName", 
         (args: any[]): void => {
             // TODO
         }
     );
+
 }
 ```
 
@@ -29,18 +36,21 @@ export function activate(context: vscode.ExtensionContext): void {
 
 ```
 export function activate(context: vscode.ExtensionContext): void {
-    TelemetryWrapper.registerCommand(context, "commandName", () => {
+
+    TelemetryWrapper.registerCommand("commandName", () => {
         return (args: any[]): void => {
             // TODO
         }
     });
+
 }
 ```
 
 **Send custom usage data during the transaction**
 ```
 export function activate(context: vscode.ExtensionContext): void {
-    TelemetryWrapper.registerCommand(context, "commandName", (t: Transaction) => {
+
+    TelemetryWrapper.registerCommand("commandName", (t: Transaction) => {
         return (args: any[]): void => {
             // TODO: initialize
             TelemetryWrapper.getReporter().sendTelemetryEvent("initilizeDone", {transectionId: t.id});
@@ -49,6 +59,7 @@ export function activate(context: vscode.ExtensionContext): void {
             // TODO: final tasks
         }
     });
+
 }
 ```
 
@@ -63,7 +74,8 @@ Result:
 **Inject customized properties into the transaction**
 ```
 export function activate(context: vscode.ExtensionContext): void {
-    TelemetryWrapper.registerCommand(context, "commandName", (t: Transaction) => {
+
+    TelemetryWrapper.registerCommand("commandName", (t: Transaction) => {
         return (args: any[]): void => {
             t.customProperties.finishedSteps = [];
             // TODO: initialize
@@ -74,6 +86,7 @@ export function activate(context: vscode.ExtensionContext): void {
             t.customProperties.finishedSteps.push("finalTasks");
         }
     });
+
 }
 ```
 
@@ -92,7 +105,7 @@ Result:
         finishedSteps: [
             "initialize",
             "preTasks",
-             "finalTasks"
+            "finalTasks"
         ]
     }
     ```
