@@ -3,22 +3,22 @@ import { ICustomEvent } from "./Interfaces";
 
 export class Transaction {
     public id: string;
-    public name: string;
+    public action: string;
     public startAt: Date;
     public stopAt: Date;
 
     public customMeasures: { [key: string]: any } = {};
     public customProperties: { [key: string]: any } = {};
 
-    constructor(name: string) {
+    constructor(action: string) {
         this.id = uuid.v4();
-        this.name = name;
+        this.action = action;
     }
 
     getCustomEvent(): ICustomEvent {
         const ret: ICustomEvent = {};
-        ret.measures = Object.assign({}, this.customMeasures, { duration: this.stopAt.getTime() - this.startAt.getTime() });
-        ret.properties = Object.assign({}, this.customProperties, { name: this.name, startAt: this.startAt, stopAt: this.stopAt });
+        ret.measures = Object.assign({}, this.customMeasures, { duration: (this.startAt && this.stopAt) ? this.stopAt.getTime() - this.startAt.getTime() : undefined });
+        ret.properties = Object.assign({}, this.customProperties, { transactionId: this.id, action: this.action, startAt: this.startAt, stopAt: this.stopAt });
         return ret;
     }
 

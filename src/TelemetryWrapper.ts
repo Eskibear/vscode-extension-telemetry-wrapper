@@ -29,21 +29,25 @@ export module TelemetryWrapper {
     export function registerCommand(command: string, task: (currentTransaction?: Transaction) => (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
             const transaction: Transaction = startTransaction(command);
-            report(EventType.COMMAND_START, { properties: { command, transactionId: transaction.id } });
+            report(EventType.COMMAND_START, {
+                properties: Object.assign({}, transaction.getCustomEvent().properties)
+            });
             const callback: (...args: any[]) => any = task(transaction);
             try {
                 await callback(param);
                 transaction.end();
-                report(EventType.COMMAND_END, Object.assign({},
-                    transaction.getCustomEvent(),
-                    { properties: { command, transactionId: transaction.id } }
-                ));
+                const customEvent = transaction.getCustomEvent();
+                report(EventType.COMMAND_END, {
+                    properties: Object.assign({}, customEvent.properties),
+                    measures: Object.assign({}, customEvent.measures)
+                });
             } catch (error) {
                 transaction.end();
-                report(EventType.COMMAND_ERROR, Object.assign({},
-                    transaction.getCustomEvent(),
-                    { properties: { command, error, transactionId: transaction.id } }
-                ));
+                const customEvent = transaction.getCustomEvent();
+                report(EventType.COMMAND_ERROR, {
+                    properties: Object.assign({}, customEvent.properties, { error }),
+                    measures: Object.assign({}, customEvent.measures)
+                });
                 throw error;
             }
         });
