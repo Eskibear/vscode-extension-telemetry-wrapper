@@ -5,6 +5,7 @@ It sends `commandStart` and `commandEnd`/`commandError` for execution of each th
 
 ```
 import { TelemetryWrapper } from "vscode-extension-telemetry-wrapper";
+TelemetryWrapper.initilize(publisher, extensionName, version(), aiKey);
 ```
 
 For compatibility, the legacy `TelemetryReporter` can be accessed by `TelemetryWrapper.getReporter()`.
