@@ -6,7 +6,6 @@ import { ICustomEvent } from "./Interfaces";
 
 export module TelemetryWrapper {
     let reporter: TelemetryReporter;
-    let enabled: () => boolean = () => true;
 
     export async function initilizeFromJsonFile(fsPath: string): Promise<void> {
         if (await fse.pathExists(fsPath)) {
@@ -54,10 +53,6 @@ export module TelemetryWrapper {
         return reporter;
     }
 
-    export function setEnabled(func: () => boolean): void {
-        enabled = func;
-    }
-
     export function startTransaction(name: string): Transaction {
         const trans: Transaction = new Transaction(name);
         trans.startAt = new Date();
@@ -65,7 +60,7 @@ export module TelemetryWrapper {
     }
 
     function report(eventType: EventType, event?: ICustomEvent): void {
-        if (reporter && enabled()) {
+        if (reporter) {
             reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
         }
     }
