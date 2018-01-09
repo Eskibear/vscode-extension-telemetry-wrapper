@@ -7,8 +7,8 @@ export class Transaction {
     public startAt: Date;
     public stopAt: Date;
 
-    private customMeasures: { [key: string]: ICustomMeasure } = {};
-    private customProperties?: { [key: string]: {} } = {};
+    public customMeasures: { [key: string]: any } = {};
+    public customProperties: { [key: string]: any } = {};
 
     constructor(name: string) {
         this.id = uuid.v4();
@@ -17,33 +17,12 @@ export class Transaction {
 
     getCustomEvent(): ICustomEvent {
         const ret: ICustomEvent = {};
-        ret.measures = Object.assign(
-            {},
-            ...Object.keys(this.customMeasures).map((k: string) => ({ [k]: this.customMeasures[k].reduceFunc(this.customMeasures[k].observes) })),
-            { duration: this.stopAt.getTime() - this.startAt.getTime() }
-        );
+        ret.measures = Object.assign({}, this.customMeasures, { duration: this.stopAt.getTime() - this.startAt.getTime() });
         ret.properties = Object.assign({}, this.customProperties, { name: this.name, startAt: this.startAt, stopAt: this.stopAt });
         return ret;
-    }
-
-    public initMeasure<T>(key: string, reduceFunc: (observes: T[]) => number): void {
-        if (!this.customMeasures[key]) {
-            this.customMeasures[key] = { observes: [], reduceFunc };
-        }
-    }
-
-    public observeMeasure<T>(key: string, observe: T): void {
-        if (this.customMeasures[key]) {
-            this.customMeasures[key].observes.push(observe);
-        }
     }
 
     public end(): void {
         this.stopAt = new Date();
     }
-
-}
-interface ICustomMeasure {
-    observes: {}[];
-    reduceFunc(observes: {}[]): number;
 }
