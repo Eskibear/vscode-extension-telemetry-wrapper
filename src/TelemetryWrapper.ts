@@ -21,8 +21,10 @@ export module TelemetryWrapper {
         if (reporter) {
             throw new Error("TelemetryReporter already initilized.");
         }
-        reporter = new TelemetryReporter(`${publisher}.${name}`, version, aiKey);
-        report(EventType.ACTIVATION);
+        if (aiKey) {
+            reporter = new TelemetryReporter(`${publisher}.${name}`, version, aiKey);
+            report(EventType.ACTIVATION);
+        }
     }
 
     export function registerCommand(command: string, task: (currentTransaction?: Transaction) => (...args: any[]) => any): vscode.Disposable {
