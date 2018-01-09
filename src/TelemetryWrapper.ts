@@ -1,3 +1,4 @@
+import * as fse from 'fs-extra';
 import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { Transaction } from "./Transaction";
@@ -6,6 +7,16 @@ import { ICustomEvent } from "./Interfaces";
 export module TelemetryWrapper {
     let reporter: TelemetryReporter;
     let enabled: () => boolean = () => true;
+
+    export async function initilizeFromJsonFile(fsPath: string): Promise<void> {
+        if (await fse.pathExists(fsPath)) {
+            const { publisher, name, version, aiKey } = await fse.readJSON(fsPath);
+            initilize(publisher, name, version, aiKey);
+        } else {
+            throw new Error(`The Json file '${fsPath}' does not exist.`);
+        }
+    }
+
     export function initilize(publisher: string, name: string, version: string, aiKey: string): void {
         if (reporter) {
             throw new Error("TelemetryReporter already initilized.");
@@ -14,8 +25,8 @@ export module TelemetryWrapper {
         report(EventType.ACTIVATION);
     }
 
-    export function registerCommand(context: vscode.ExtensionContext, command: string, task: (currentTransaction?: Transaction) => (...args: any[]) => any): void {
-        context.subscriptions.push(vscode.commands.registerCommand(command, async (param: any[]) => {
+    export function registerCommand(command: string, task: (currentTransaction?: Transaction) => (...args: any[]) => any): vscode.Disposable {
+        return vscode.commands.registerCommand(command, async (param: any[]) => {
             const transaction: Transaction = startTransaction(command);
             report(EventType.COMMAND_START, { properties: { command, transactionId: transaction.id } });
             const callback: (...args: any[]) => any = task(transaction);
@@ -34,7 +45,7 @@ export module TelemetryWrapper {
                 ));
                 throw error;
             }
-        }));
+        });
     }
 
     export function getReporter(): TelemetryReporter {
@@ -56,7 +67,6 @@ export module TelemetryWrapper {
             reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
         }
     }
-
 
     enum EventType {
         ACTIVATION = "activation",
