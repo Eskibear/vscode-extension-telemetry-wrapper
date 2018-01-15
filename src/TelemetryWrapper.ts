@@ -1,8 +1,9 @@
 import * as fse from 'fs-extra';
 import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
-import { Transaction } from "./Transaction";
+import { Session } from "./Session";
 import { ICustomEvent } from "./Interfaces";
+import { ExitCode } from './ExitCode';
 
 export module TelemetryWrapper {
     let reporter: TelemetryReporter;
@@ -26,29 +27,20 @@ export module TelemetryWrapper {
         }
     }
 
-    export function registerCommand(command: string, task: (currentTransaction?: Transaction) => (...args: any[]) => any): vscode.Disposable {
+    export function registerCommand(command: string, task: (currentSession?: Session) => (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
-            const transaction: Transaction = startTransaction(command);
+            const session: Session = startSession(command);
             report(EventType.COMMAND_START, {
-                properties: Object.assign({}, transaction.getCustomEvent().properties)
+                properties: Object.assign({}, session.getCustomEvent().properties)
             });
-            const callback: (...args: any[]) => any = task(transaction);
+            const callback: (...args: any[]) => any = task(session);
             try {
                 await callback(param);
-                transaction.end();
-                const customEvent = transaction.getCustomEvent();
-                report(EventType.COMMAND_END, {
-                    properties: Object.assign({}, customEvent.properties),
-                    measures: Object.assign({}, customEvent.measures)
-                });
             } catch (error) {
-                transaction.end();
-                const customEvent = transaction.getCustomEvent();
-                report(EventType.COMMAND_ERROR, {
-                    properties: Object.assign({}, customEvent.properties, { error }),
-                    measures: Object.assign({}, customEvent.measures)
-                });
+                session.error(error, ExitCode.GENERAL_ERROR);
                 throw error;
+            } finally {
+                session.end();
             }
         });
     }
@@ -57,22 +49,24 @@ export module TelemetryWrapper {
         return reporter;
     }
 
-    export function startTransaction(name: string): Transaction {
-        const trans: Transaction = new Transaction(name);
-        trans.startAt = new Date();
+    export function startSession(name: string): Session {
+        const trans: Session = new Session(name);
         return trans;
     }
 
-    function report(eventType: EventType, event?: ICustomEvent): void {
+    export function report(eventType: EventType | string, event?: ICustomEvent): void {
         if (reporter) {
             reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
         }
     }
 
-    enum EventType {
+    export enum EventType {
         ACTIVATION = "activation",
+        ERROR = "error",
+        WARNING = "warning",
+        INFO = "info",
+        VERBOSE = "verbose",
         COMMAND_START = "commandStart",
-        COMMAND_ERROR = "commandError",
         COMMAND_END = "commandEnd"
     }
 }

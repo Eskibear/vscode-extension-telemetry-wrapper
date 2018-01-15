@@ -1,2 +1,2 @@
 export { TelemetryWrapper } from "./TelemetryWrapper";
-export { Transaction } from "./Transaction";
+export { Session } from "./Session";
