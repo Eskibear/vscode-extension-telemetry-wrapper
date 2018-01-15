@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { Session } from "./Session";
 import { ICustomEvent } from "./Interfaces";
+import { ExitCode } from './ExitCode';
 
 export module TelemetryWrapper {
     let reporter: TelemetryReporter;
@@ -35,20 +36,11 @@ export module TelemetryWrapper {
             const callback: (...args: any[]) => any = task(session);
             try {
                 await callback(param);
-                session.end();
-                const customEvent = session.getCustomEvent();
-                report(EventType.COMMAND_END, {
-                    properties: Object.assign({}, customEvent.properties),
-                    measures: Object.assign({}, customEvent.measures)
-                });
             } catch (error) {
-                session.end();
-                const customEvent = session.getCustomEvent();
-                report(EventType.COMMAND_ERROR, {
-                    properties: Object.assign({}, customEvent.properties, { error }),
-                    measures: Object.assign({}, customEvent.measures)
-                });
+                session.error(error, ExitCode.GENERAL_ERROR);
                 throw error;
+            } finally {
+                session.end();
             }
         });
     }
@@ -59,20 +51,22 @@ export module TelemetryWrapper {
 
     export function startSession(name: string): Session {
         const trans: Session = new Session(name);
-        trans.startAt = new Date();
         return trans;
     }
 
-    function report(eventType: EventType, event?: ICustomEvent): void {
+    export function report(eventType: EventType | string, event?: ICustomEvent): void {
         if (reporter) {
             reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
         }
     }
 
-    enum EventType {
+    export enum EventType {
         ACTIVATION = "activation",
+        ERROR = "error",
+        WARNING = "warning",
+        INFO = "info",
+        VERBOSE = "verbose",
         COMMAND_START = "commandStart",
-        COMMAND_ERROR = "commandError",
         COMMAND_END = "commandEnd"
     }
 }
