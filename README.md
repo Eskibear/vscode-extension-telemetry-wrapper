@@ -46,16 +46,16 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 ```
 
-**Send custom usage data during the transaction**
+**Send custom usage data during the session**
 ```
 export function activate(context: vscode.ExtensionContext): void {
 
-    TelemetryWrapper.registerCommand("commandName", (t: Transaction) => {
+    TelemetryWrapper.registerCommand("commandName", (t: Session) => {
         return (args: any[]): void => {
             // TODO: initialize
-            TelemetryWrapper.getReporter().sendTelemetryEvent("initilizeDone", {transectionId: t.id});
+            TelemetryWrapper.getReporter().sendTelemetryEvent("initilizeDone", {sessionId: t.id});
             // TODO: pre tasks
-            TelemetryWrapper.getReporter().sendTelemetryEvent("preTasksDone", {transectionId: t.id});
+            TelemetryWrapper.getReporter().sendTelemetryEvent("preTasksDone", {sessionId: t.id});
             // TODO: final tasks
         }
     });
@@ -71,11 +71,11 @@ Result:
 * publisher.extension/commandEnd
 
 
-**Inject customized properties into the transaction**
+**Inject customized properties into the a session**
 ```
 export function activate(context: vscode.ExtensionContext): void {
 
-    TelemetryWrapper.registerCommand("commandName", (t: Transaction) => {
+    TelemetryWrapper.registerCommand("commandName", (t: Session) => {
         return (args: any[]): void => {
             t.customProperties.finishedSteps = [];
             // TODO: initialize
@@ -95,13 +95,13 @@ Result:
 * publisher.extension/commandStart
     ```
     {
-        transectionId: xxx
+        sessionId: xxx
     }
     ```
 * publisher.extension/commandEnd
     ```
     {
-        transectionId: xxx,
+        sessionId: xxx,
         finishedSteps: [
             "initialize",
             "preTasks",

@@ -1,7 +1,7 @@
 import * as uuid from "uuid";
 import { ICustomEvent } from "./Interfaces";
 
-export class Transaction {
+export class Session {
     public id: string;
     public action: string;
     public startAt: Date;
@@ -18,7 +18,7 @@ export class Transaction {
     getCustomEvent(): ICustomEvent {
         const ret: ICustomEvent = {};
         ret.measures = Object.assign({}, this.customMeasures, { duration: (this.startAt && this.stopAt) ? this.stopAt.getTime() - this.startAt.getTime() : undefined });
-        ret.properties = Object.assign({}, this.customProperties, { transactionId: this.id, action: this.action, startAt: this.startAt, stopAt: this.stopAt });
+        ret.properties = Object.assign({}, this.customProperties, { sessionId: this.id, action: this.action, startAt: this.startAt, stopAt: this.stopAt });
         return ret;
     }
 

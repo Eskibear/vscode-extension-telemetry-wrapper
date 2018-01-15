@@ -1,7 +1,7 @@
 import * as fse from 'fs-extra';
 import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
-import { Transaction } from "./Transaction";
+import { Session } from "./Session";
 import { ICustomEvent } from "./Interfaces";
 
 export module TelemetryWrapper {
@@ -26,24 +26,24 @@ export module TelemetryWrapper {
         }
     }
 
-    export function registerCommand(command: string, task: (currentTransaction?: Transaction) => (...args: any[]) => any): vscode.Disposable {
+    export function registerCommand(command: string, task: (currentSession?: Session) => (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
-            const transaction: Transaction = startTransaction(command);
+            const session: Session = startSession(command);
             report(EventType.COMMAND_START, {
-                properties: Object.assign({}, transaction.getCustomEvent().properties)
+                properties: Object.assign({}, session.getCustomEvent().properties)
             });
-            const callback: (...args: any[]) => any = task(transaction);
+            const callback: (...args: any[]) => any = task(session);
             try {
                 await callback(param);
-                transaction.end();
-                const customEvent = transaction.getCustomEvent();
+                session.end();
+                const customEvent = session.getCustomEvent();
                 report(EventType.COMMAND_END, {
                     properties: Object.assign({}, customEvent.properties),
                     measures: Object.assign({}, customEvent.measures)
                 });
             } catch (error) {
-                transaction.end();
-                const customEvent = transaction.getCustomEvent();
+                session.end();
+                const customEvent = session.getCustomEvent();
                 report(EventType.COMMAND_ERROR, {
                     properties: Object.assign({}, customEvent.properties, { error }),
                     measures: Object.assign({}, customEvent.measures)
@@ -57,8 +57,8 @@ export module TelemetryWrapper {
         return reporter;
     }
 
-    export function startTransaction(name: string): Transaction {
-        const trans: Transaction = new Transaction(name);
+    export function startSession(name: string): Session {
+        const trans: Session = new Session(name);
         trans.startAt = new Date();
         return trans;
     }
