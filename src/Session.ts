@@ -58,7 +58,7 @@ export class Session {
         const customEvent: ICustomEvent = this.getCustomEvent();
         TelemetryWrapper.report(TelemetryWrapper.EventType.WARNING, {
             properties: Object.assign({}, customEvent.properties, { message }),
-            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.WARNING })
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.WARN })
         });
     }
 
@@ -80,5 +80,19 @@ export class Session {
             properties: Object.assign({}, properties, customEvent.properties),
             measures: Object.assign({}, measures, customEvent.measures)
         });
+    }
+
+    public extraProperties() {
+        if (this.customProperties.extra === undefined) {
+            this.customProperties.extra = {};
+        }
+        return this.customProperties.extra;
+    }
+
+    public extraMeasures() {
+        if (this.customMeasures.extra === undefined) {
+            this.customMeasures.extra = {};
+        }
+        return this.customMeasures.extra;
     }
 }
