@@ -37,6 +37,15 @@ export class Session {
         });
     }
 
+    public fatal(message: any, exitCode?: string): void {
+        const customEvent: ICustomEvent = this.getCustomEvent();
+        TelemetryWrapper.report(TelemetryWrapper.EventType.ERROR, {
+            properties: Object.assign({}, customEvent.properties, { message }),
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.FATAL })
+        });
+        this.exitCode = exitCode || ExitCode.GENERAL_ERROR;
+    }
+
     public error(message: any, exitCode?: string): void {
         const customEvent: ICustomEvent = this.getCustomEvent();
         TelemetryWrapper.report(TelemetryWrapper.EventType.ERROR, {

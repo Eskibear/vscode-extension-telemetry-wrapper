@@ -37,7 +37,7 @@ export module TelemetryWrapper {
             try {
                 await callback(param);
             } catch (error) {
-                session.error(error, ExitCode.GENERAL_ERROR);
+                session.fatal(error, ExitCode.GENERAL_ERROR);
                 throw error;
             } finally {
                 session.end();
