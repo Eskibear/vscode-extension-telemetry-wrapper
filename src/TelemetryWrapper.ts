@@ -3,10 +3,12 @@ import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { Session } from "./Session";
 import { ICustomEvent } from "./Interfaces";
-import { ExitCode } from './ExitCode';
+import { ExitCode } from "./ExitCode";
+import { createNamespace, Namespace } from "continuation-local-storage";
 
 export module TelemetryWrapper {
     let reporter: TelemetryReporter;
+    let sessionNamespace: Namespace;
 
     export async function initilizeFromJsonFile(fsPath: string): Promise<void> {
         if (await fse.pathExists(fsPath)) {
@@ -25,23 +27,28 @@ export module TelemetryWrapper {
             reporter = new TelemetryReporter(`${publisher}.${name}`, version, aiKey);
             report(EventType.ACTIVATION);
         }
+        if (!sessionNamespace) {
+            sessionNamespace = createNamespace("sessionNamespace");
+        }
     }
 
-    export function registerCommand(command: string, task: (currentSession?: Session) => (...args: any[]) => any): vscode.Disposable {
+    export function registerCommand(command: string, callback: (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
-            const session: Session = startSession(command);
-            report(EventType.COMMAND_START, {
-                properties: Object.assign({}, session.getCustomEvent().properties)
+            sessionNamespace.run(async () => {
+                const session: Session = startSession(command);
+                sessionNamespace.set<Session>("session", session);
+                report(EventType.COMMAND_START, {
+                    properties: Object.assign({}, session.getCustomEvent().properties)
+                });
+                try {
+                    await callback(param);
+                } catch (error) {
+                    session.fatal(error, ExitCode.GENERAL_ERROR);
+                    throw error;
+                } finally {
+                    session.end();
+                }
             });
-            const callback: (...args: any[]) => any = task(session);
-            try {
-                await callback(param);
-            } catch (error) {
-                session.fatal(error, ExitCode.GENERAL_ERROR);
-                throw error;
-            } finally {
-                session.end();
-            }
         });
     }
 
@@ -58,6 +65,10 @@ export module TelemetryWrapper {
         if (reporter) {
             reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
         }
+    }
+
+    export function getSession() {
+        return sessionNamespace && sessionNamespace.get("session");
     }
 
     export enum EventType {
