@@ -11,8 +11,8 @@ export class Session {
     public startAt: Date;
     public stopAt: Date;
 
-    public customMeasures: { [key: string]: any } = {};
-    public customProperties: { [key: string]: any } = {};
+    public extraProperties: { [key: string]: any } = {};
+    public extraMeasures: { [key: string]: any } = {};
 
     constructor(action: string) {
         this.id = uuid.v4();
@@ -22,8 +22,10 @@ export class Session {
 
     getCustomEvent(): ICustomEvent {
         const ret: ICustomEvent = {};
-        ret.properties = Object.assign({}, this.customProperties, { sessionId: this.id, action: this.action, startAt: this.startAt });
-        ret.measures = Object.assign({}, this.customMeasures, { duration: (this.stopAt || new Date()).getTime() - this.startAt.getTime() }, { logLevel: LogLevel.INFO });
+        const extraPropertiesObject = Object.assign({}, ...Object.keys(this.extraProperties).map(k => ({[`extra.${k}`]: this.extraProperties[k]})));
+        const extraMeasuresObject = Object.assign({}, ...Object.keys(this.extraMeasures).map(k => ({[`extra.${k}`]: this.extraMeasures[k]})));
+        ret.properties = Object.assign({}, extraPropertiesObject, { sessionId: this.id, action: this.action, startAt: this.startAt });
+        ret.measures = Object.assign({}, extraMeasuresObject, { duration: (this.stopAt || new Date()).getTime() - this.startAt.getTime() }, { logLevel: LogLevel.INFO });
         return ret;
     }
 
@@ -89,19 +91,5 @@ export class Session {
             properties: Object.assign({}, properties, customEvent.properties),
             measures: Object.assign({}, measures, customEvent.measures)
         });
-    }
-
-    public extraProperties() {
-        if (this.customProperties.extra === undefined) {
-            this.customProperties.extra = {};
-        }
-        return this.customProperties.extra;
-    }
-
-    public extraMeasures() {
-        if (this.customMeasures.extra === undefined) {
-            this.customMeasures.extra = {};
-        }
-        return this.customMeasures.extra;
     }
 }
