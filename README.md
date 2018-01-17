@@ -104,13 +104,13 @@ export function activate(context: vscode.ExtensionContext): void {
 
     TelemetryWrapper.registerCommand("commandName", (t: Session) => {
         return (args: any[]): void => {
-            t.customProperties.finishedSteps = [];
+            t.extraProperties.finishedSteps = [];
             // TODO: initialize
-            t.customProperties.finishedSteps.push("initialize");
+            t.extraProperties.finishedSteps.push("initialize");
             // TODO: pre tasks
-            t.customProperties.finishedSteps.push("preTasks");
+            t.extraProperties.finishedSteps.push("preTasks");
             // TODO: final tasks
-            t.customProperties.finishedSteps.push("finalTasks");
+            t.extraProperties.finishedSteps.push("finalTasks");
         }
     });
 
@@ -130,7 +130,7 @@ Result:
     {
         sessionId: xxx,
         exitCode: 0,
-        finishedSteps: [
+        extra.finishedSteps: [
             "initialize",
             "preTasks",
             "finalTasks"
