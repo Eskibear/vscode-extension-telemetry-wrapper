@@ -41,7 +41,7 @@ export class Session {
 
     public fatal(message: any, exitCode?: string): void {
         const customEvent: ICustomEvent = this.getCustomEvent();
-        TelemetryWrapper.report(TelemetryWrapper.EventType.ERROR, {
+        TelemetryWrapper.report(TelemetryWrapper.EventType.FATAL, {
             properties: Object.assign({}, customEvent.properties, { message }),
             measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.FATAL })
         });
@@ -67,7 +67,7 @@ export class Session {
 
     public warning(message: any): void {
         const customEvent: ICustomEvent = this.getCustomEvent();
-        TelemetryWrapper.report(TelemetryWrapper.EventType.WARNING, {
+        TelemetryWrapper.report(TelemetryWrapper.EventType.WARN, {
             properties: Object.assign({}, customEvent.properties, { message }),
             measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.WARN })
         });
