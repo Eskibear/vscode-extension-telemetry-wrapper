@@ -6,6 +6,8 @@ import { ICustomEvent } from "./Interfaces";
 import { ExitCode } from "./ExitCode";
 import { createNamespace, Namespace } from "continuation-local-storage";
 
+const SESSION_KEY: string = "session";
+
 export module TelemetryWrapper {
     let reporter: TelemetryReporter;
     let sessionNamespace: Namespace;
@@ -36,7 +38,7 @@ export module TelemetryWrapper {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
             sessionNamespace.run(async () => {
                 const session: Session = startSession(command);
-                sessionNamespace.set<Session>("session", session);
+                sessionNamespace.set<Session>(SESSION_KEY, session);
                 report(EventType.COMMAND_START, {
                     properties: Object.assign({}, session.getCustomEvent().properties)
                 });
@@ -67,8 +69,8 @@ export module TelemetryWrapper {
         }
     }
 
-    export function getSession() {
-        return sessionNamespace && sessionNamespace.get("session");
+    export function currentSession() {
+        return sessionNamespace && sessionNamespace.get(SESSION_KEY);
     }
 
     export enum EventType {
