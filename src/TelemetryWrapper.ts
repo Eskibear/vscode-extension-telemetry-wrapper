@@ -62,8 +62,9 @@ export module TelemetryWrapper {
 
     export enum EventType {
         ACTIVATION = "activation",
+        FATAL = "fatal",
         ERROR = "error",
-        WARNING = "warning",
+        WARN = "warn",
         INFO = "info",
         VERBOSE = "verbose",
         COMMAND_START = "commandStart",
