@@ -5,6 +5,7 @@ import { Session } from "./Session";
 import { ICustomEvent } from "./Interfaces";
 import { ExitCode } from "./ExitCode";
 import { createNamespace, Namespace } from "continuation-local-storage";
+import { LogLevel } from './LogLevel';
 
 const SESSION_KEY: string = "session";
 
@@ -40,15 +41,16 @@ export module TelemetryWrapper {
                 const session: Session = startSession(command);
                 sessionNamespace.set<Session>(SESSION_KEY, session);
                 report(EventType.COMMAND_START, {
-                    properties: Object.assign({}, session.getCustomEvent().properties)
+                    properties: Object.assign({}, session.getCustomEvent().properties),
+                    measures: { logLevel: LogLevel.INFO }
                 });
                 try {
                     await callback(param);
                 } catch (error) {
-                    session.fatal(error, ExitCode.GENERAL_ERROR);
+                    fatal(error, ExitCode.GENERAL_ERROR);
                     throw error;
                 } finally {
-                    session.end();
+                    endSession(session);
                 }
             });
         });
@@ -63,14 +65,84 @@ export module TelemetryWrapper {
         return trans;
     }
 
-    export function report(eventType: EventType | string, event?: ICustomEvent): void {
-        if (reporter) {
-            reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
+    export function endSession(session: Session) {
+        if (session) {
+            session.end();
+            const customEvent = session.getCustomEvent();
+            report(EventType.COMMAND_END, {
+                properties: Object.assign({}, customEvent.properties, { stopAt: session.stopAt, exitCode: session.exitCode }),
+                measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.INFO })
+            });
         }
     }
 
     export function currentSession() {
         return sessionNamespace && sessionNamespace.get(SESSION_KEY);
+    }
+
+
+    export function fatal(message: any, exitCode?: string): void {
+        const session: Session = currentSession();
+        const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
+        report(EventType.ERROR, {
+            properties: Object.assign({}, customEvent.properties, { message }),
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.FATAL })
+        });
+        if (session) {
+            session.exitCode = exitCode || ExitCode.GENERAL_ERROR;
+        }
+    }
+
+    export function error(message: any, exitCode?: string): void {
+        const session: Session = currentSession();
+        const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
+        report(EventType.ERROR, {
+            properties: Object.assign({}, customEvent.properties, { message }),
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.ERROR })
+        });
+        if (session) {
+            session.exitCode = exitCode || ExitCode.GENERAL_ERROR;
+        }
+    }
+
+    export function info(message: any): void {
+        const session: Session = currentSession();
+        const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
+        report(EventType.INFO, {
+            properties: Object.assign({}, customEvent.properties, { message }),
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.INFO })
+        });
+    }
+
+    export function  warn(message: any): void {
+        const session: Session = currentSession();
+        const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
+        report(EventType.WARN, {
+            properties: Object.assign({}, customEvent.properties, { message }),
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.WARN })
+        });
+    }
+
+    export function  verbose(message: any): void {
+        const session: Session = currentSession();
+        const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
+        report(EventType.VERBOSE, {
+            properties: Object.assign({}, customEvent.properties, { message }),
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.VERBOSE })
+        });
+    }
+
+    export function sendTelemetryEvent(eventName: string, properties?: {
+        [key: string]: string;
+    }, measures?: {
+        [key: string]: number;
+    }): void {
+        const session: Session = currentSession();
+        const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
+        report(eventName, {
+            properties: Object.assign({}, properties, customEvent.properties),
+            measures: Object.assign({}, measures, customEvent.measures)
+        });
     }
 
     export enum EventType {
@@ -82,6 +154,12 @@ export module TelemetryWrapper {
         VERBOSE = "verbose",
         COMMAND_START = "commandStart",
         COMMAND_END = "commandEnd"
+    }
+
+    function report(eventType: EventType | string, event?: ICustomEvent): void {
+        if (reporter) {
+            reporter.sendTelemetryEvent(eventType, event && event.properties, event && event.measures);
+        }
     }
 }
 
