@@ -41,11 +41,11 @@ export function activate(context: vscode.ExtensionContext): void {
 ```
 export function activate(context: vscode.ExtensionContext): void {
 
-    TelemetryWrapper.registerCommand("commandName", () => {
-        return (args: any[]): void => {
+    TelemetryWrapper.registerCommand("commandName",
+        (args: any[]): void => {
             // TODO
         }
-    });
+    );
 
 }
 ```
@@ -54,15 +54,15 @@ export function activate(context: vscode.ExtensionContext): void {
 ```
 export function activate(context: vscode.ExtensionContext): void {
 
-    TelemetryWrapper.registerCommand("commandName", (t: Session) => {
-        return (args: any[]): void => {
+    TelemetryWrapper.registerCommand("commandName",
+        (args: any[]): void => {
             // TODO: initialize
-            t.sendTelemetryEvent(“initializeDone”);
+            TelemetryWrapper.sendTelemetryEvent(“initializeDone”);
             // TODO: pre tasks
-            t.sendTelemetryEvent("preTasksDone");
+            TelemetryWrapper.sendTelemetryEvent("preTasksDone");
             // TODO: final tasks
         }
-    });
+    );
 
 }
 ```
@@ -79,31 +79,32 @@ Result:
 ```
 export function activate(context: vscode.ExtensionContext): void {
 
-    TelemetryWrapper.registerCommand("commandName", (t: Session) => {
-        return (args: any[]): void => {
+    TelemetryWrapper.registerCommand("commandName",
+        (args: any[]): void => {
             // TODO: initialize
-            t.info(“initializeDone”);
+            TelemetryWrapper.info(“initializeDone”);
             // TODO: pre tasks with error
-            t.error("preTasksNotDone");
+            TelemetryWrapper.error("preTasksNotDone");
             // TODO: final tasks
         }
-    });
+    );
 }
 ```
 Result:
 
 * publisher.extension/commandStart      {sessionId: xxx}
-* publisher.extension/info              {message: "initilizeDone", sessionId: xxx}
-* publisher.extension/error             {message: "preTasksDone", sessionId: xxx}
-* publisher.extension/commandEnd        {sessionId: xxx, exitCode: 255}
+* publisher.extension/info              {message: "initilizeDone", logLevel: 400, sessionId: xxx}
+* publisher.extension/error             {message: "preTasksDone", logLevel: 200, sessionId: xxx}
+* publisher.extension/commandEnd        {sessionId: xxx, exitCode: 1}
 
 
 **Inject customized properties into the a session**
 ```
 export function activate(context: vscode.ExtensionContext): void {
 
-    TelemetryWrapper.registerCommand("commandName", (t: Session) => {
-        return (args: any[]): void => {
+    TelemetryWrapper.registerCommand("commandName",
+        (args: any[]): void => {
+            const t = TelemetryWrapper.currentSession();
             t.extraProperties.finishedSteps = [];
             // TODO: initialize
             t.extraProperties.finishedSteps.push("initialize");
@@ -112,7 +113,7 @@ export function activate(context: vscode.ExtensionContext): void {
             // TODO: final tasks
             t.extraProperties.finishedSteps.push("finalTasks");
         }
-    });
+    );
 
 }
 ```
