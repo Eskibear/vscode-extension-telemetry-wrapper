@@ -56,11 +56,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     TelemetryWrapper.registerCommand("commandName",
         (args: any[]): void => {
-            const t = TelemetryWrapper.currentSession();
             // TODO: initialize
-            t.sendTelemetryEvent(“initializeDone”);
+            TelemetryWrapper.sendTelemetryEvent(“initializeDone”);
             // TODO: pre tasks
-            t.sendTelemetryEvent("preTasksDone");
+            TelemetryWrapper.sendTelemetryEvent("preTasksDone");
             // TODO: final tasks
         }
     );
@@ -82,11 +81,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     TelemetryWrapper.registerCommand("commandName",
         (args: any[]): void => {
-            const t = TelemetryWrapper.currentSession();
             // TODO: initialize
-            t.info(“initializeDone”);
+            TelemetryWrapper.info(“initializeDone”);
             // TODO: pre tasks with error
-            t.error("preTasksNotDone");
+            TelemetryWrapper.error("preTasksNotDone");
             // TODO: final tasks
         }
     );
