@@ -37,21 +37,24 @@ export module TelemetryWrapper {
 
     export function registerCommand(command: string, callback: (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
-            sessionNamespace.run(async () => {
-                const session: Session = startSession(command);
-                sessionNamespace.set<Session>(SESSION_KEY, session);
-                report(EventType.COMMAND_START, {
-                    properties: Object.assign({}, session.getCustomEvent().properties),
-                    measures: { logLevel: LogLevel.INFO }
+            await new Promise<void>(resolve => {
+                sessionNamespace.run(async () => {
+                    const session: Session = startSession(command);
+                    sessionNamespace.set<Session>(SESSION_KEY, session);
+                    report(EventType.COMMAND_START, {
+                        properties: Object.assign({}, session.getCustomEvent().properties),
+                        measures: { logLevel: LogLevel.INFO }
+                    });
+                    try {
+                        await callback(param);
+                    } catch (error) {
+                        fatal(error, ExitCode.GENERAL_ERROR);
+                        throw error;
+                    } finally {
+                        endSession(session);
+                        resolve();
+                    }
                 });
-                try {
-                    await callback(param);
-                } catch (error) {
-                    fatal(error, ExitCode.GENERAL_ERROR);
-                    throw error;
-                } finally {
-                    endSession(session);
-                }
             });
         });
     }
