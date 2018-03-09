@@ -51,8 +51,8 @@ export module TelemetryWrapper {
                         fatal(error, ExitCode.GENERAL_ERROR);
                         throw error;
                     } finally {
-                        endSession(session);
                         resolve();
+                        endSession(session);
                     }
                 });
             });
