@@ -37,7 +37,7 @@ export module TelemetryWrapper {
 
     export function registerCommand(command: string, callback: (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
-            await new Promise<void>(resolve => {
+            await new Promise<void>((resolve, reject) => {
                 sessionNamespace.run(async () => {
                     const session: Session = startSession(command);
                     sessionNamespace.set<Session>(SESSION_KEY, session);
@@ -47,11 +47,11 @@ export module TelemetryWrapper {
                     });
                     try {
                         await callback(param);
+                        resolve();
                     } catch (error) {
                         fatal(error, ExitCode.GENERAL_ERROR);
-                        throw error;
+                        reject(error);
                     } finally {
-                        resolve();
                         endSession(session);
                     }
                 });
