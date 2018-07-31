@@ -5,6 +5,15 @@
 Inject code to send telemetry to Application Insight when register commands.
 It sends `commandStart` and `commandEnd` for execution of each the command.
 
+## Version map
+|vscode-extension-telemetry-wrapper|vscode-extension-telemetry| 
+|---|---|
+|0.2.4|^0.0.18|
+|0.2.3 (Deprecated)|^0.0.17|
+|0.2.2|^0.0.17|
+|0.2.1|0.0.10|
+|0.1.x|0.0.10|
+
 ## Usage
 
 ```
