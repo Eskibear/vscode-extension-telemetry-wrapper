@@ -6,9 +6,9 @@ import { ExitCode } from "./ExitCode";
 export class Session {
     public id: string;
     public action: string;
-    public exitCode: string;
+    public exitCode?: string;
     public startAt: Date;
-    public stopAt: Date;
+    public stopAt?: Date;
 
     public extraProperties: { [key: string]: any } = {};
     public extraMeasures: { [key: string]: any } = {};
