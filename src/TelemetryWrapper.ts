@@ -84,7 +84,12 @@ export module TelemetryWrapper {
     }
 
 
-    export function fatal(message: any, exitCode?: string): void {
+    /**
+     * Send a telemetry record with event name "fatal".
+     * @param message a string or a JSON string.
+     * @param exitCode 
+     */
+    export function fatal(message: string, exitCode?: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.ERROR, {
@@ -96,7 +101,12 @@ export module TelemetryWrapper {
         }
     }
 
-    export function error(message: any, exitCode?: string): void {
+    /**
+     * Send a telemetry record with event name "error".
+     * @param message a string or a JSON string.
+     * @param exitCode 
+     */
+    export function error(message: string, exitCode?: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.ERROR, {
@@ -108,7 +118,12 @@ export module TelemetryWrapper {
         }
     }
 
-    export function info(message: any): void {
+    /**
+     * Send a telemetry record with event name "info".
+     * @param message a string or a JSON string.
+     * @param exitCode 
+     */
+    export function info(message: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.INFO, {
@@ -117,7 +132,12 @@ export module TelemetryWrapper {
         });
     }
 
-    export function  warn(message: any): void {
+    /**
+     * Send a telemetry record with event name "warn".
+     * @param message a string or a JSON string.
+     * @param exitCode 
+     */
+    export function  warn(message: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.WARN, {
@@ -126,7 +146,12 @@ export module TelemetryWrapper {
         });
     }
 
-    export function  verbose(message: any): void {
+    /**
+     * Send a telemetry record with event name "verbose".
+     * @param message a string or a JSON string.
+     * @param exitCode 
+     */
+    export function  verbose(message: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.VERBOSE, {
