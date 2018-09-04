@@ -4,18 +4,7 @@ import TelemetryReporter from "vscode-extension-telemetry";
 import { ErrorCode } from './ErrorCode';
 import { EventName } from "./EventName";
 
-// Determine whether in debugging extension. Copied from:
-// https://github.com/redhat-developer/vscode-java/blob/e8716fd827061b5d96b2483734279b6d76694fe3/src/javaServerStarter.ts#L9
-declare var v8debug: any;
-const DEBUG = (typeof v8debug === 'object') || startedInDebugMode();
-function startedInDebugMode(): boolean {
-    let args = (process as any).execArgv;
-    if (args) {
-        return args.some((arg: any) => /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect-brk=?/.test(arg));
-    }
-    return false;
-}
-
+let _isDebug: boolean = false;
 let reporter: TelemetryReporter;
 
 /**
@@ -23,10 +12,10 @@ let reporter: TelemetryReporter;
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
  */
-export async function initilizeFromJsonFile(jsonFilepath: string): Promise<void> {
+export async function initilizeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
     if (await fse.pathExists(jsonFilepath)) {
         const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-        initilizeFromAttributes(`${publisher}.${name}`, version, aiKey);
+        initilizeFromAttributes(`${publisher}.${name}`, version, aiKey, !!_debug);
     } else {
         throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
     }
@@ -38,13 +27,14 @@ export async function initilizeFromJsonFile(jsonFilepath: string): Promise<void>
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
  */
-export function initilizeFromAttributes(extensionId: string, version: string, aiKey: string): void {
+export function initilizeFromAttributes(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
     if (reporter) {
         throw new Error("TelemetryReporter already initilized.");
     }
     if (aiKey) {
         reporter = new TelemetryReporter(extensionId, version, aiKey);
     }
+    _isDebug = !!_debug;
 }
 
 /**
@@ -63,7 +53,7 @@ export function getWrappedCommand(commandName: string, cb: (...args: any[]) => a
             return await cb(...args);
         } catch (e) {
             error = e;
-            sendError(oId, { errorCode: ErrorCode.GENERAL_ERROR, error });
+            sendError(oId, error);
         } finally {
             const duration = Date.now() - startAt;
             sendOpEnd(oId, commandName, duration, error);
@@ -78,7 +68,7 @@ export function getWrappedCommand(commandName: string, cb: (...args: any[]) => a
  */
 export function sendError(oId: string, errorObject: any) {
     if (!errorObject || errorObject.errorCode === ErrorCode.NO_ERROR) {
-        if (DEBUG) {
+        if (_isDebug) {
             console.warn("No error indicated by: ", errorObject);
         }
     } else {
@@ -120,11 +110,11 @@ type Measurements = {
 function report(eventName: string, properties?: Properties, measurements?: Measurements): void {
     if (reporter) {
         reporter.sendTelemetryEvent(eventName, properties, measurements);
-        if (DEBUG) {
+        if (_isDebug) {
             console.log(eventName, { eventName, properties, measurements });
         }
     } else {
-        if (DEBUG) {
+        if (_isDebug) {
             console.warn("TelemetryReporter is not initialized.");
         }
     }
