@@ -2,6 +2,7 @@ import * as fse from 'fs-extra';
 import * as uuid from "uuid";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { ErrorCode } from './ErrorCode';
+import { EventName } from "./EventName";
 
 // Determine whether in debugging extension. Copied from:
 // https://github.com/redhat-developer/vscode-java/blob/e8716fd827061b5d96b2483734279b6d76694fe3/src/javaServerStarter.ts#L9
@@ -62,7 +63,7 @@ export function getWrappedCommand(commandName: string, cb: (...args: any[]) => a
             return await cb(...args);
         } catch (e) {
             error = e;
-            sendError(oId, { errorCode: ErrorCode.GENERAL_ERROR, ...error });
+            sendError(oId, { errorCode: ErrorCode.GENERAL_ERROR, error });
         } finally {
             const duration = Date.now() - startAt;
             sendOpEnd(oId, commandName, duration, error);
