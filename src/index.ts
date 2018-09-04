@@ -1,4 +1,12 @@
 export { TelemetryWrapper } from "./TelemetryWrapper";
 export { Session } from "./Session";
 // For next
-export { sendError, sendOpEnd, sendOpStart, getWrappedCommand, initilizeFromJsonFile, initilizeFromAttributes } from "./next/main";
+export {
+    getWrappedCommand,
+    initilizeFromJsonFile,
+    initilizeFromAttributes,
+    sendError,
+    sendOpEnd,
+    sendOpStart,
+} from "./next/main";
+export { UserError } from "./next/UserError";

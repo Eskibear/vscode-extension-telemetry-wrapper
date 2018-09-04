@@ -3,6 +3,7 @@ import * as uuid from "uuid";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { ErrorCode } from './ErrorCode';
 import { EventName } from "./EventName";
+import { UserError } from './UserError';
 
 let _isDebug: boolean = false;
 let reporter: TelemetryReporter;
@@ -121,10 +122,10 @@ function report(eventName: string, properties?: Properties, measurements?: Measu
 }
 
 const ALLOWED_KEYS_FOR_ERROR: string[] = [
-    "errorCode",// Preserve 0 for no error, 1 for general error.
-    "name",     // For name of an Error.
-    "message",  // For message of an Error.
-    "stack",    // For callstack of an Error.
+    "errorCode",    // Preserve "0" for no error, "1" for general error.
+    "message",      // For message of an Error.
+    "stack",        // For callstack of an Error.
+    "isUserError",  // Indicator of user error. Possible values: "true", "false".
 ];
 
 function getErrorProperties(object: any): Properties {
@@ -136,6 +137,7 @@ function getErrorProperties(object: any): Properties {
             }
         }
         ret.errorCode = ret.errorCode || ErrorCode.GENERAL_ERROR;
+        ret.isUserError = ret.isUserError || object instanceof UserError ? "true" : "false";
     } else {
         ret.errorCode = ErrorCode.NO_ERROR;
     }
