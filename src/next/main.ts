@@ -1,6 +1,7 @@
 import * as fse from 'fs-extra';
 import * as uuid from "uuid";
 import TelemetryReporter from "vscode-extension-telemetry";
+import { ErrorCode } from './ErrorCode';
 
 // Determine whether in debugging extension. Copied from:
 // https://github.com/redhat-developer/vscode-java/blob/e8716fd827061b5d96b2483734279b6d76694fe3/src/javaServerStarter.ts#L9
@@ -45,6 +46,66 @@ export function initilizeFromAttributes(extensionId: string, version: string, ai
     }
 }
 
+/**
+ * Wrap callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
+ * @param commandName 
+ * @param cb The callback function for the command.
+ * @returns A new callback with telemetry logic injected.
+ */
+export function getWrappedCommand(commandName: string, cb: (...args: any[]) => any): (...args: any[]) => any {
+    return async (...args: any[]) => {
+        let error = undefined;
+        let oId = uuid.v4();
+        const startAt: number = Date.now();
+        try {
+            sendOpStart(oId, commandName);
+            return await cb(...args);
+        } catch (e) {
+            error = e;
+            sendError(oId, { errorCode: ErrorCode.GENERAL_ERROR, ...error });
+        } finally {
+            const duration = Date.now() - startAt;
+            sendOpEnd(oId, commandName, duration, error);
+        }
+    }
+};
+
+/**
+ * Send ERROR telemetry data, supposed to be used when an error occurs.
+ * @param oId Operation Id.
+ * @param errorObject An object containing error details.
+ */
+export function sendError(oId: string, errorObject: any) {
+    if (!errorObject || errorObject.errorCode === ErrorCode.NO_ERROR) {
+        if (DEBUG) {
+            console.warn("No error indicated by: ", errorObject);
+        }
+    } else {
+        const errorProperties: Properties = getErrorProperties(errorObject);
+        report(EventName.ERROR, { oId, ...errorProperties });
+    }
+}
+
+/**
+ * Send OPERATION_START telemetry data, supposed to be used when an operation starts.
+ * @param oId Operation Id.
+ * @param oName Operation name.
+ */
+export function sendOpStart(oId: string, oName: string) {
+    report(EventName.OPERATION_START, { oId, oName });
+}
+
+/**
+ * Send OPERATION_END telemetry data, supposed to be used when an operation ends.
+ * @param oId Operation Id.
+ * @param oName Operation name.
+ * @param duration Time elapsed for the operation, in milliseconds.
+ * @param errorObject An optional object containing error details.
+ */
+export function sendOpEnd(oId: string, oName: string, duration: number, errorObject?: any) {
+    const errorProperties: Properties = getErrorProperties(errorObject);
+    report(EventName.OPERATION_END, { oId, oName, ...errorProperties }, { duration });
+}
 
 
 type Properties = {
@@ -59,7 +120,7 @@ function report(eventName: string, properties?: Properties, measurements?: Measu
     if (reporter) {
         reporter.sendTelemetryEvent(eventName, properties, measurements);
         if (DEBUG) {
-            console.log(eventName, {eventName, properties, measurements});
+            console.log(eventName, { eventName, properties, measurements });
         }
     } else {
         if (DEBUG) {
@@ -68,3 +129,24 @@ function report(eventName: string, properties?: Properties, measurements?: Measu
     }
 }
 
+const ALLOWED_KEYS_FOR_ERROR: string[] = [
+    "errorCode",// Preserve 0 for no error, 1 for general error.
+    "name",     // For name of an Error.
+    "message",  // For message of an Error.
+    "stack",    // For callstack of an Error.
+];
+
+function getErrorProperties(object: any): Properties {
+    const ret: Properties = {};
+    if (object) {
+        for (const key of ALLOWED_KEYS_FOR_ERROR) {
+            if (object[key]) {
+                ret[key] = object[key];
+            }
+        }
+        ret.errorCode = ret.errorCode || ErrorCode.GENERAL_ERROR;
+    } else {
+        ret.errorCode = ErrorCode.NO_ERROR;
+    }
+    return ret;
+}
