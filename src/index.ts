@@ -2,9 +2,9 @@ export { TelemetryWrapper } from "./TelemetryWrapper";
 export { Session } from "./Session";
 // For next
 export {
-    getWrappedCommand,
+    instrumentCommand,
+    initilize,
     initilizeFromJsonFile,
-    initilizeFromAttributes,
     sendError,
     sendOpEnd,
     sendOpStart,

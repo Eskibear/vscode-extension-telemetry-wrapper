@@ -14,12 +14,11 @@ let reporter: TelemetryReporter;
  * @param jsonFilepath absolute path of a JSON file.
  */
 export async function initilizeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
-    if (await fse.pathExists(jsonFilepath)) {
-        const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-        initilizeFromAttributes(`${publisher}.${name}`, version, aiKey, !!_debug);
-    } else {
+    if (!await fse.pathExists(jsonFilepath)) {
         throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
     }
+    const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
+    initilize(`${publisher}.${name}`, version, aiKey, !!_debug);
 }
 
 /**
@@ -28,10 +27,11 @@ export async function initilizeFromJsonFile(jsonFilepath: string, _debug?: boole
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
  */
-export function initilizeFromAttributes(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
+export function initilize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
     if (reporter) {
         throw new Error("TelemetryReporter already initilized.");
     }
+
     if (aiKey) {
         reporter = new TelemetryReporter(extensionId, version, aiKey);
     }
@@ -39,12 +39,12 @@ export function initilizeFromAttributes(extensionId: string, version: string, ai
 }
 
 /**
- * Wrap callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
+ * Instrument callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
  * @param commandName 
  * @param cb The callback function for the command.
  * @returns A new callback with telemetry logic injected.
  */
-export function getWrappedCommand(commandName: string, cb: (...args: any[]) => any): (...args: any[]) => any {
+export function instrumentCommand(commandName: string, cb: (...args: any[]) => any): (...args: any[]) => any {
     return async (...args: any[]) => {
         let error = undefined;
         let oId = uuid.v4();
@@ -73,7 +73,7 @@ export function sendError(oId: string, errorObject: any) {
             console.warn("No error indicated by: ", errorObject);
         }
     } else {
-        const errorProperties: Properties = getErrorProperties(errorObject);
+        const errorProperties: Properties = extractErrorProperties(errorObject);
         report(EventName.ERROR, { oId, ...errorProperties });
     }
 }
@@ -95,10 +95,9 @@ export function sendOpStart(oId: string, oName: string) {
  * @param errorObject An optional object containing error details.
  */
 export function sendOpEnd(oId: string, oName: string, duration: number, errorObject?: any) {
-    const errorProperties: Properties = getErrorProperties(errorObject);
+    const errorProperties: Properties = extractErrorProperties(errorObject);
     report(EventName.OPERATION_END, { oId, oName, ...errorProperties }, { duration });
 }
-
 
 type Properties = {
     [key: string]: string;
@@ -114,24 +113,20 @@ function report(eventName: string, properties?: Properties, measurements?: Measu
         if (_isDebug) {
             console.log(eventName, { eventName, properties, measurements });
         }
-    } else {
-        if (_isDebug) {
-            console.warn("TelemetryReporter is not initialized.");
-        }
-    }
+    } 
 }
 
-const ALLOWED_KEYS_FOR_ERROR: string[] = [
+const ERROR_KEYS: string[] = [
     "errorCode",    // Preserve "0" for no error, "1" for general error.
     "message",      // For message of an Error.
     "stack",        // For callstack of an Error.
     "isUserError",  // Indicator of user error. Possible values: "true", "false".
 ];
 
-function getErrorProperties(object: any): Properties {
+function extractErrorProperties(object: any): Properties {
     const ret: Properties = {};
     if (object) {
-        for (const key of ALLOWED_KEYS_FOR_ERROR) {
+        for (const key of ERROR_KEYS) {
             if (object[key]) {
                 ret[key] = object[key];
             }
