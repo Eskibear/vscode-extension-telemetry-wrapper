@@ -127,7 +127,7 @@ function extractErrorProperties(object: any): ErrorBody {
     }
 
     // filter out fields not in ERROR_KEYS.
-    const ret: ErrorBody = Object.keys(object).filter(key => ERROR_KEYS.indexOf(key) >= 0).reduce(
+    const ret: ErrorBody = Object.getOwnPropertyNames(object).filter(key => ERROR_KEYS.indexOf(key) >= 0).reduce(
         (obj, key) => ({ ...obj, [key]: object[key] }), {}
     ) as ErrorBody;
 
