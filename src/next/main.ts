@@ -4,6 +4,7 @@ import { ErrorCode } from './ErrorCode';
 import { EventName } from "./EventName";
 import { UserError } from './UserError';
 import { createUuid } from '..';
+import { ErrorType } from './ErrorType';
 
 let _isDebug: boolean = false;
 let reporter: TelemetryReporter;
@@ -113,28 +114,28 @@ function report(eventName: string, properties?: Properties, measurements?: Measu
         if (_isDebug) {
             console.log(eventName, { eventName, properties, measurements });
         }
-    } 
+    }
 }
 
 const ERROR_KEYS: string[] = [
     "errorCode",    // Preserve "0" for no error, "1" for general error.
     "message",      // For message of an Error.
     "stack",        // For callstack of an Error.
-    "isUserError",  // Indicator of user error. Possible values: "true", "false".
+    "errorType",    // Indicator of error type. Possible values: USER_ERROR, SYSTEM_ERROR.
 ];
 
 function extractErrorProperties(object: any): Properties {
-    const ret: Properties = {};
-    if (object) {
-        for (const key of ERROR_KEYS) {
-            if (object[key]) {
-                ret[key] = object[key];
-            }
-        }
-        ret.errorCode = ret.errorCode || ErrorCode.GENERAL_ERROR;
-        ret.isUserError = ret.isUserError || object instanceof UserError ? "true" : "false";
-    } else {
-        ret.errorCode = ErrorCode.NO_ERROR;
+    if (!object) {
+        return { errorCode: ErrorCode.NO_ERROR };
     }
+
+    const ret: Properties = {};
+    for (const key of ERROR_KEYS) {
+        if (object[key]) {
+            ret[key] = object[key];
+        }
+    }
+    ret.errorCode = ret.errorCode || ErrorCode.GENERAL_ERROR;
+    ret.errorType = ret.errorType || object instanceof UserError ? ErrorType.USER_ERROR : ErrorType.SYSTEM_ERROR;
     return ret;
 }
