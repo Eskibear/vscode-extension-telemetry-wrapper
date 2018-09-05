@@ -1,5 +1,13 @@
 export { TelemetryWrapper } from "./TelemetryWrapper";
 export { Session } from "./Session";
 // For next
-export { sendError, sendOpEnd, sendOpStart, instrumentCommand, initializeFromJsonFile, initialize } from "./next/main";
+export {
+    instrumentCommand,
+    initialize,
+    initializeFromJsonFile,
+    sendError,
+    sendOpEnd,
+    sendOpStart,
+} from "./next/main";
+export { UserError } from "./next/UserError";
 export { v4 as createUuid } from "uuid";
