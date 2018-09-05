@@ -1,8 +1,8 @@
 import * as fse from 'fs-extra';
-import * as uuid from "uuid";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { ErrorCode } from './ErrorCode';
 import { EventName } from "./EventName";
+import { createUuid } from '..';
 
 let _isDebug: boolean = false;
 let reporter: TelemetryReporter;
@@ -46,7 +46,7 @@ export function initialize(extensionId: string, version: string, aiKey: string, 
 export function instrumentCommand(commandName: string, cb: (...args: any[]) => any): (...args: any[]) => any {
     return async (...args: any[]) => {
         let error = undefined;
-        let oId = uuid.v4();
+        let oId = createUuid();
         const startAt: number = Date.now();
         try {
             sendOpStart(oId, commandName);
