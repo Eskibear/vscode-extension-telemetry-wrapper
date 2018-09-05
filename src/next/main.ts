@@ -1,9 +1,9 @@
 import * as fse from 'fs-extra';
+import * as uuidv4 from "uuid/v4";
 import TelemetryReporter from "vscode-extension-telemetry";
-import { ErrorCode } from './ErrorCode';
-import { EventName } from "./EventName";
+import { EventName, Measurements, Dimensions, ErrorBody, OperationStartDimensions, OperationEndDimensions, ErrorDimensions, ERROR_KEYS } from "./EventSpec";
 import { UserError } from './UserError';
-import { createUuid } from '..';
+import { ErrorCode } from './ErrorCode';
 import { ErrorType } from './ErrorType';
 
 let _isDebug: boolean = false;
@@ -75,9 +75,9 @@ export function sendError(errorObject: any, oId?: string, oName?: string) {
         return;
     }
 
-    const errorProperties: Properties = extractErrorProperties(errorObject);
-    // Todo: Add oId, oName if existing.
-    report(EventName.ERROR, { ...errorProperties });
+    const errorBody: ErrorBody = extractErrorProperties(errorObject);
+    const dimensions: ErrorDimensions = { oId, oName, ...errorBody };
+    report(EventName.ERROR, dimensions);
 }
 
 /**
@@ -86,7 +86,8 @@ export function sendError(errorObject: any, oId?: string, oName?: string) {
  * @param oName Operation name.
  */
 export function sendOpStart(oId: string, oName: string) {
-    report(EventName.OPERATION_START, { oId, oName });
+    const dimensions: OperationStartDimensions = { oId, oName };
+    report(EventName.OPERATION_START, dimensions);
 }
 
 /**
@@ -97,45 +98,39 @@ export function sendOpStart(oId: string, oName: string) {
  * @param errorObject An optional object containing error details.
  */
 export function sendOpEnd(oId: string, oName: string, duration: number, errorObject?: any) {
-    const errorProperties: Properties = extractErrorProperties(errorObject);
-    report(EventName.OPERATION_END, { oId, oName, ...errorProperties }, { duration });
+    const errorDimensions: ErrorBody = extractErrorProperties(errorObject);
+    const dimensions: OperationEndDimensions = { oId, oName, ...errorDimensions };
+    report(EventName.OPERATION_END, dimensions, { duration });
 }
 
-type Properties = {
-    [key: string]: string;
-};
+/**
+ * Create a UUID string using uuid.v4().
+ */
+export function createUuid(): string {
+    return uuidv4();
+}
 
-type Measurements = {
-    [key: string]: number;
-};
+function report(eventName: string, properties?: Dimensions, measurements?: Measurements): void {
+    if (!reporter) {
+        return;
+    }
 
-function report(eventName: string, properties?: Properties, measurements?: Measurements): void {
-    if (reporter) {
-        reporter.sendTelemetryEvent(eventName, properties, measurements);
-        if (_isDebug) {
-            console.log(eventName, { eventName, properties, measurements });
-        }
+    reporter.sendTelemetryEvent(eventName, properties as { [key: string]: string; }, measurements as { [key: string]: number; });
+    if (_isDebug) {
+        console.log(eventName, { eventName, properties, measurements });
     }
 }
 
-const ERROR_KEYS: string[] = [
-    "errorCode",    // Preserve "0" for no error, "1" for general error.
-    "message",      // For message of an Error.
-    "stack",        // For callstack of an Error.
-    "errorType",    // Indicator of error type. Possible values: USER_ERROR, SYSTEM_ERROR.
-];
-
-function extractErrorProperties(object: any): Properties {
+function extractErrorProperties(object: any): ErrorBody {
     if (!object) {
         return { errorCode: ErrorCode.NO_ERROR };
     }
 
-    const ret: Properties = {};
-    for (const key of ERROR_KEYS) {
-        if (object[key]) {
-            ret[key] = object[key];
-        }
-    }
+    // filter out fields not in ERROR_KEYS.
+    const ret: ErrorBody = Object.keys(object).filter(key => ERROR_KEYS.indexOf(key) >= 0).reduce(
+        (obj, key) => ({ ...obj, [key]: object[key] }), {}
+    ) as ErrorBody;
+
     ret.errorCode = ret.errorCode || ErrorCode.GENERAL_ERROR;
     ret.errorType = ret.errorType || object instanceof UserError ? ErrorType.USER_ERROR : ErrorType.SYSTEM_ERROR;
     return ret;
