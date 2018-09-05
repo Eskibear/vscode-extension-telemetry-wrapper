@@ -65,18 +65,19 @@ export function instrumentCommand(commandName: string, cb: (...args: any[]) => a
 
 /**
  * Send ERROR telemetry data, supposed to be used when an error occurs.
- * @param oId Operation Id.
  * @param errorObject An object containing error details.
+ * @param oId Operation Id.
+ * @param oName Operation name.
  */
-export function sendError(oId: string, errorObject: any) {
+export function sendError(errorObject: any, oId?: string, oName?: string) {
     if (!errorObject || errorObject.errorCode === ErrorCode.NO_ERROR) {
-        if (_isDebug) {
-            console.warn("No error indicated by: ", errorObject);
-        }
-    } else {
-        const errorProperties: Properties = extractErrorProperties(errorObject);
-        report(EventName.ERROR, { oId, ...errorProperties });
+        _isDebug && console.warn("No error indicated by: ", errorObject);
+        return;
     }
+
+    const errorProperties: Properties = extractErrorProperties(errorObject);
+    // Todo: Add oId, oName if existing.
+    report(EventName.ERROR, { ...errorProperties });
 }
 
 /**
