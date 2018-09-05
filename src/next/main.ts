@@ -55,7 +55,7 @@ export function instrumentCommand(commandName: string, cb: (...args: any[]) => a
             return await cb(...args);
         } catch (e) {
             error = e;
-            sendError(oId, error);
+            sendError(error, oId, commandName);
         } finally {
             const duration = Date.now() - startAt;
             sendOpEnd(oId, commandName, duration, error);
