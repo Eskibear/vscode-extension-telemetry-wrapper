@@ -1,9 +1,9 @@
 import * as fse from 'fs-extra';
-import * as uuid from "uuid";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { ErrorCode } from './ErrorCode';
 import { EventName } from "./EventName";
 import { UserError } from './UserError';
+import { createUuid } from '..';
 
 let _isDebug: boolean = false;
 let reporter: TelemetryReporter;
@@ -13,21 +13,21 @@ let reporter: TelemetryReporter;
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
  */
-export async function initilizeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
+export async function initializeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
     if (!await fse.pathExists(jsonFilepath)) {
         throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
     }
     const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-    initilize(`${publisher}.${name}`, version, aiKey, !!_debug);
+    initialize(`${publisher}.${name}`, version, aiKey, !!_debug);
 }
 
 /**
  * Initialize TelemetryReporter from given attributes.
- * @param extensionId Idenfier of the extension, used as prefix of EventName in telemetry data.
+ * @param extensionId Identifier of the extension, used as prefix of EventName in telemetry data.
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
  */
-export function initilize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
+export function initialize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
     if (reporter) {
         throw new Error("TelemetryReporter already initilized.");
     }
@@ -47,7 +47,7 @@ export function initilize(extensionId: string, version: string, aiKey: string, _
 export function instrumentCommand(commandName: string, cb: (...args: any[]) => any): (...args: any[]) => any {
     return async (...args: any[]) => {
         let error = undefined;
-        let oId = uuid.v4();
+        let oId = createUuid();
         const startAt: number = Date.now();
         try {
             sendOpStart(oId, commandName);
