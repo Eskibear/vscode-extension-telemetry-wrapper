@@ -12,21 +12,21 @@ let reporter: TelemetryReporter;
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
  */
-export async function initilizeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
+export async function initializeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
     if (!await fse.pathExists(jsonFilepath)) {
         throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
     }
     const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-    initilize(`${publisher}.${name}`, version, aiKey, !!_debug);
+    initialize(`${publisher}.${name}`, version, aiKey, !!_debug);
 }
 
 /**
  * Initialize TelemetryReporter from given attributes.
- * @param extensionId Idenfier of the extension, used as prefix of EventName in telemetry data.
+ * @param extensionId Identifier of the extension, used as prefix of EventName in telemetry data.
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
  */
-export function initilize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
+export function initialize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
     if (reporter) {
         throw new Error("TelemetryReporter already initilized.");
     }
