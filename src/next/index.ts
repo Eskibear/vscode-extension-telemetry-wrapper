@@ -99,7 +99,7 @@ export function sendOperationStart(operationId: string, operationName: string) {
 }
 
 /**
- * Send OPERATION_START event.
+ * Send OPERATION_END event.
  * @param operationId Unique id of the operation.
  * @param operationName Name of the operation.
  * @param duration Time elapsed for the operation, in milliseconds.
