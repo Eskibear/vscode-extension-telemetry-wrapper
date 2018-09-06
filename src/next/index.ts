@@ -15,6 +15,7 @@ let _reporter: TelemetryReporter;
  * Initialize TelemetryReporter by parsing attributes from a JSON file.
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
+ * @param _debug If set as true, debug information be printed to console.
  */
 export async function initializeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
     if (!await fse.pathExists(jsonFilepath)) {
@@ -29,6 +30,7 @@ export async function initializeFromJsonFile(jsonFilepath: string, _debug?: bool
  * @param extensionId Identifier of the extension, used as prefix of EventName in telemetry data.
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
+ * @param _debug If set as true, debug information be printed to console.
  */
 export function initialize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
     if (_reporter) {
@@ -81,6 +83,11 @@ export function instrumentOperation(operationName: string, cb: (_operationId: st
     }
 }
 
+/**
+ * Send OPERATION_START event.
+ * @param operationId Unique id of the operation.
+ * @param operationName Name of the operation.
+ */
 export function sendOperationStart(operationId: string, operationName: string) {
     const event: OperationStartEvent = {
         eventName: EventName.OPERATION_START,
@@ -91,7 +98,14 @@ export function sendOperationStart(operationId: string, operationName: string) {
     sendEvent(event);
 }
 
-export function sendOperationEnd(operationId: string, operationName: string, duration: number, err: Error) {
+/**
+ * Send OPERATION_START event.
+ * @param operationId Unique id of the operation.
+ * @param operationName Name of the operation.
+ * @param duration Time elapsed for the operation, in milliseconds.
+ * @param err An optional Error instance if occurs during the operation.
+ */
+export function sendOperationEnd(operationId: string, operationName: string, duration: number, err?: Error) {
     const event: OperationEndEvent = {
         eventName: EventName.OPERATION_END,
         operationId: operationId,
@@ -104,8 +118,8 @@ export function sendOperationEnd(operationId: string, operationName: string, dur
 }
 
 /**
- * Send a general ERROR event, supposed to be used when an error occurs.
- * @param err An Error instance containing details.
+ * Send an ERROR event.
+ * @param err An Error instance.
  */
 export function sendError(err: Error) {
     const event: ErrorEvent = {
@@ -117,8 +131,8 @@ export function sendError(err: Error) {
 }
 
 /**
- * Send an ERROR event during an operation, carrying Id and name of the oepration. 
- * @param operationId Id of the operation.
+ * Send an ERROR event during an operation, carrying id and name of the oepration. 
+ * @param operationId Unique id of the operation.
  * @param operationName Name of the operation.
  * @param err An Error instance containing details.
  */
@@ -140,7 +154,7 @@ export function createUuid(): string {
     return uuidv4();
 }
 
-function extractErrorInfo(err: Error): ErrorInfo {
+function extractErrorInfo(err?: Error): ErrorInfo {
     if (!err) {
         return {
             errorCode: ErrorCodes.NO_ERROR
