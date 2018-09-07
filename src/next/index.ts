@@ -170,7 +170,6 @@ function extractErrorInfo(err?: Error): ErrorInfo {
     };
 }
 
-
 function sendEvent(event: TelemetryEvent) {
     if (!_reporter) {
         return;
