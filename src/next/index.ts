@@ -21,6 +21,7 @@ export async function initializeFromJsonFile(jsonFilepath: string, _debug?: bool
     if (!await fse.pathExists(jsonFilepath)) {
         throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
     }
+
     const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
     initialize(`${publisher}.${name}`, version, aiKey, !!_debug);
 }
@@ -175,16 +176,16 @@ function sendEvent(event: TelemetryEvent) {
         return;
     }
 
-    const dimensions: {[key: string]: string} = {};
-    for(const key of DimensionEntries) {
+    const dimensions: { [key: string]: string } = {};
+    for (const key of DimensionEntries) {
         const value = (event as any)[key];
         if (value) {
             dimensions[key] = String(value);
         }
     }
 
-    const measurements: {[key: string]: number} = {};
-    for(const key of MeasurementEntries) {
+    const measurements: { [key: string]: number } = {};
+    for (const key of MeasurementEntries) {
         const value = (event as any)[key];
         if (value) {
             measurements[key] = value;
