@@ -177,8 +177,7 @@ function sendEvent(event: TelemetryEvent) {
 
     const dimensions: {[key: string]: string} = {};
     for(const key of DimensionEntries) {
-        // @ts-ignore
-        const value = event[key];
+        const value = (event as any)[key];
         if (value) {
             dimensions[key] = String(value);
         }
@@ -186,8 +185,7 @@ function sendEvent(event: TelemetryEvent) {
 
     const measurements: {[key: string]: number} = {};
     for(const key of MeasurementEntries) {
-        // @ts-ignore
-        const value = event[key];
+        const value = (event as any)[key];
         if (value) {
             measurements[key] = value;
         }
