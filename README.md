@@ -8,9 +8,9 @@ It sends `commandStart` and `commandEnd` for execution of each the command.
 ## Version map
 |vscode-extension-telemetry-wrapper|vscode-extension-telemetry| 
 |---|---|
-|0.3.0|^0.0.18|
-|0.2.4|^0.0.18|
-|0.2.3 (Deprecated)|^0.0.17|
+|0.3.0 (next)|^0.0.18|
+|0.2.4 (latest)|^0.0.18|
+|~~0.2.3 (Deprecated)~~|~~^0.0.17~~|
 |0.2.2|^0.0.17|
 |0.2.1|0.0.10|
 |0.1.x|0.0.10|
@@ -43,6 +43,17 @@ It sends `commandStart` and `commandEnd` for execution of each the command.
     // _operationId contains a unique Id for each execution of `myHello`, in case you want to access it.
     const instrumented = instrumentOperation(name, (_operationId, myargs) => myHello(myargs));
     vscode.commands.registerCommand(name, instrumented);
+    ```
+
+- Mark an Error as user error.
+    ```ts
+    try {
+        // ...
+    } catch (err: Error) {
+        setUserError(err);
+        // do something with the user error.
+        throw(err);
+    }
     ```
 
 ### Exported APIs
