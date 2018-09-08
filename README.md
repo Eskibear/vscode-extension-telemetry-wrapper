@@ -56,6 +56,18 @@ It sends `commandStart` and `commandEnd` for execution of each the command.
     }
     ```
 
+- Set error code for an Error.
+    ```ts
+    try {
+        // ...
+    } catch (err: Error) {
+        // The error code should be a non-zero integer. 
+        const ERROR_FILE_NOT_FOUND = 2;
+        setErrorCode(err, ERROR_FILE_NOT_FOUND);
+        throw(err);
+    }
+    ```
+
 ### Exported APIs
 
 <details><summary>Initialize.</summary>
