@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc -p .",
     "watch": "tsc -w -p .",
-    "dev-postinstall": "node ./node_modules/vscode/bin/install"
+    "dev-postinstall": "node ./node_modules/vscode/bin/install",
+    "tslint": "tslint -t verbose src/*.ts"
   },
   "engines": {
     "vscode": "^1.5.0"
@@ -30,7 +31,8 @@
     "@types/fs-extra": "^5.0.0",
     "@types/node": "^8.5.7",
     "@types/uuid": "^3.4.3",
-    "typescript": "^2.6.2",
+    "tslint": "^5.11.0",
+    "typescript": "^2.9.2",
     "vscode": "^1.1.21"
   }
 }

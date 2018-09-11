@@ -1,15 +1,15 @@
-import * as fse from 'fs-extra';
+import { createNamespace, Namespace } from "continuation-local-storage";
+import * as fse from "fs-extra";
 import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
-import { Session } from "./Session";
-import { ICustomEvent } from "./Interfaces";
 import { ExitCode } from "./ExitCode";
-import { createNamespace, Namespace } from "continuation-local-storage";
-import { LogLevel } from './LogLevel';
+import { ICustomEvent } from "./Interfaces";
+import { LogLevel } from "./LogLevel";
+import { Session } from "./Session";
 
 const SESSION_KEY: string = "session";
 
-export module TelemetryWrapper {
+export namespace TelemetryWrapper {
     let reporter: TelemetryReporter;
     let sessionNamespace: Namespace;
 
@@ -42,8 +42,8 @@ export module TelemetryWrapper {
                     const session: Session = startSession(command);
                     sessionNamespace.set<Session>(SESSION_KEY, session);
                     report(EventType.COMMAND_START, {
+                        measures: { logLevel: LogLevel.INFO },
                         properties: Object.assign({}, session.getCustomEvent().properties),
-                        measures: { logLevel: LogLevel.INFO }
                     });
                     try {
                         await callback(param);
@@ -73,8 +73,12 @@ export module TelemetryWrapper {
             session.end();
             const customEvent = session.getCustomEvent();
             report(EventType.COMMAND_END, {
-                properties: Object.assign({}, customEvent.properties, { stopAt: session.stopAt, exitCode: session.exitCode }),
-                measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.INFO })
+                measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.INFO }),
+                properties: Object.assign(
+                    {},
+                    customEvent.properties,
+                    { stopAt: session.stopAt, exitCode: session.exitCode },
+                ),
             });
         }
     }
@@ -83,18 +87,17 @@ export module TelemetryWrapper {
         return sessionNamespace && sessionNamespace.get(SESSION_KEY);
     }
 
-
     /**
      * Send a telemetry record with event name "fatal".
      * @param message a string or a JSON string.
-     * @param exitCode 
+     * @param exitCode
      */
     export function fatal(message: string, exitCode?: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.ERROR, {
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.FATAL }),
             properties: Object.assign({}, customEvent.properties, { message }),
-            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.FATAL })
         });
         if (session) {
             session.exitCode = exitCode || ExitCode.GENERAL_ERROR;
@@ -104,14 +107,14 @@ export module TelemetryWrapper {
     /**
      * Send a telemetry record with event name "error".
      * @param message a string or a JSON string.
-     * @param exitCode 
+     * @param exitCode
      */
     export function error(message: string, exitCode?: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.ERROR, {
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.ERROR }),
             properties: Object.assign({}, customEvent.properties, { message }),
-            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.ERROR })
         });
         if (session) {
             session.exitCode = exitCode || ExitCode.GENERAL_ERROR;
@@ -121,55 +124,55 @@ export module TelemetryWrapper {
     /**
      * Send a telemetry record with event name "info".
      * @param message a string or a JSON string.
-     * @param exitCode 
+     * @param exitCode
      */
     export function info(message: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.INFO, {
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.INFO }),
             properties: Object.assign({}, customEvent.properties, { message }),
-            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.INFO })
         });
     }
 
     /**
      * Send a telemetry record with event name "warn".
      * @param message a string or a JSON string.
-     * @param exitCode 
+     * @param exitCode
      */
-    export function  warn(message: string): void {
+    export function warn(message: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.WARN, {
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.WARN }),
             properties: Object.assign({}, customEvent.properties, { message }),
-            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.WARN })
         });
     }
 
     /**
      * Send a telemetry record with event name "verbose".
      * @param message a string or a JSON string.
-     * @param exitCode 
+     * @param exitCode
      */
-    export function  verbose(message: string): void {
+    export function verbose(message: string): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(EventType.VERBOSE, {
+            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.VERBOSE }),
             properties: Object.assign({}, customEvent.properties, { message }),
-            measures: Object.assign({}, customEvent.measures, { logLevel: LogLevel.VERBOSE })
         });
     }
 
-    export function sendTelemetryEvent(eventName: string, properties?: {
-        [key: string]: string;
-    }, measures?: {
-        [key: string]: number;
-    }): void {
+    export function sendTelemetryEvent(
+        eventName: string,
+        properties?: { [key: string]: string },
+        measures?: { [key: string]: number },
+    ): void {
         const session: Session = currentSession();
         const customEvent: ICustomEvent = session ? session.getCustomEvent() : {};
         report(eventName, {
+            measures: Object.assign({}, measures, customEvent.measures),
             properties: Object.assign({}, properties, customEvent.properties),
-            measures: Object.assign({}, measures, customEvent.measures)
         });
     }
 
@@ -181,7 +184,7 @@ export module TelemetryWrapper {
         INFO = "info",
         VERBOSE = "verbose",
         COMMAND_START = "commandStart",
-        COMMAND_END = "commandEnd"
+        COMMAND_END = "commandEnd",
     }
 
     function report(eventType: EventType | string, event?: ICustomEvent): void {
@@ -190,4 +193,3 @@ export module TelemetryWrapper {
         }
     }
 }
-

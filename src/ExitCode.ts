@@ -1,4 +1,4 @@
 export enum ExitCode {
     SUCCESS = "0",
-    GENERAL_ERROR= "1"
+    GENERAL_ERROR= "1",
 }

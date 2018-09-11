@@ -1,7 +1,6 @@
 import * as uuid from "uuid";
-import { ICustomEvent } from "./Interfaces";
-import { TelemetryWrapper } from "./TelemetryWrapper";
 import { ExitCode } from "./ExitCode";
+import { ICustomEvent } from "./Interfaces";
 
 export class Session {
     public id: string;
@@ -19,12 +18,26 @@ export class Session {
         this.startAt = new Date();
     }
 
-    getCustomEvent(): ICustomEvent {
+    public getCustomEvent(): ICustomEvent {
         const ret: ICustomEvent = {};
-        const extraPropertiesObject = Object.assign({}, ...Object.keys(this.extraProperties).map(k => ({[`extra.${k}`]: this.extraProperties[k]})));
-        const extraMeasuresObject = Object.assign({}, ...Object.keys(this.extraMeasures).map(k => ({[`extra.${k}`]: this.extraMeasures[k]})));
-        ret.properties = Object.assign({}, extraPropertiesObject, { sessionId: this.id, action: this.action, startAt: this.startAt });
-        ret.measures = Object.assign({}, extraMeasuresObject, { duration: (this.stopAt || new Date()).getTime() - this.startAt.getTime() });
+        const extraPropertiesObject = Object.assign(
+            {},
+            ...Object.keys(this.extraProperties).map((k) => ({ [`extra.${k}`]: this.extraProperties[k] })),
+        );
+        const extraMeasuresObject = Object.assign(
+            {},
+            ...Object.keys(this.extraMeasures).map((k) => ({ [`extra.${k}`]: this.extraMeasures[k] })),
+        );
+        ret.properties = Object.assign(
+            {},
+            extraPropertiesObject,
+            { sessionId: this.id, action: this.action, startAt: this.startAt },
+        );
+        ret.measures = Object.assign(
+            {},
+            extraMeasuresObject,
+            { duration: (this.stopAt || new Date()).getTime() - this.startAt.getTime() },
+        );
         return ret;
     }
 
