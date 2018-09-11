@@ -2,7 +2,7 @@ export enum EventName {
     ERROR = "error",
     INFO = "info",
     OPERATION_START = "opStart",
-    OPERATION_END = "opEnd"
+    OPERATION_END = "opEnd",
 }
 
 export namespace ErrorCodes {
@@ -12,7 +12,7 @@ export namespace ErrorCodes {
 
 export enum ErrorType {
     USER_ERROR = "userError",
-    SYSTEM_ERROR = "systemError"
+    SYSTEM_ERROR = "systemError",
 }
 
 export interface TelemetryEvent {
