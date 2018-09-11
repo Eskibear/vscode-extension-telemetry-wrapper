@@ -76,7 +76,7 @@ export function instrumentOperation(operationName: string, cb: (_operationId: st
             return await cb(operationId, ...args);
         } catch (e) {
             error = e;
-            sendOperationalError(operationId, operationName, e);
+            sendOperationError(operationId, operationName, e);
         } finally {
             const duration = Date.now() - startAt;
             sendOperationEnd(operationId, operationName, duration, error);
@@ -137,7 +137,7 @@ export function sendError(err: Error) {
  * @param operationName Name of the operation.
  * @param err An Error instance containing details.
  */
-export function sendOperationalError(operationId: string, operationName: string, err: Error) {
+export function sendOperationError(operationId: string, operationName: string, err: Error) {
     const event: OperationalErrorEvent = {
         eventName: EventName.ERROR,
         operationId: operationId,
