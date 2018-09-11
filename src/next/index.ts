@@ -63,9 +63,10 @@ export function setErrorCode(err: Error, errorCode: number): void {
  * Instrument callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
  * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
  * @param cb The callback function with a unique Id passed by its 1st parameter.
+ * @param willThrowError An optional flag indicating whether to propagate out the error thrown in @param cb.
  * @returns The instrumented callback.
  */
-export function instrumentOperation(operationName: string, cb: (_operationId: string, ...args: any[]) => any): (...args: any[]) => any {
+export function instrumentOperation(operationName: string, cb: (_operationId: string, ...args: any[]) => any, willThrowError?: boolean): (...args: any[]) => any {
     return async (...args: any[]) => {
         let error = undefined;
         let operationId = createUuid();
@@ -77,6 +78,9 @@ export function instrumentOperation(operationName: string, cb: (_operationId: st
         } catch (e) {
             error = e;
             sendOperationalError(operationId, operationName, e);
+            if (willThrowError) {
+                throw e;
+            }
         } finally {
             const duration = Date.now() - startAt;
             sendOperationEnd(operationId, operationName, duration, error);
