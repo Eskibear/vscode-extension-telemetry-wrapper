@@ -38,7 +38,7 @@ export interface OperationEndEvent extends TelemetryEvent, Operation, ErrorInfo 
     duration: number;
 }
 
-export interface OperationalErrorEvent extends TelemetryEvent, Operation, ErrorInfo {
+export interface OperationErrorEvent extends TelemetryEvent, Operation, ErrorInfo {
 }
 
 export interface ErrorEvent extends TelemetryEvent, ErrorInfo {

@@ -1,29 +1,41 @@
-import { OperationStartEvent, OperationEndEvent, OperationErrorEvent, ErrorEvent, ErrorCodes, ErrorType, TelemetryEvent, ErrorInfo, EventName, DimensionEntries, MeasurementEntries } from "./event";
+import * as fse from "fs-extra";
 import * as uuidv4 from "uuid/v4";
-import * as fse from 'fs-extra';
 import TelemetryReporter from "vscode-extension-telemetry";
+import {
+    DimensionEntries,
+    ErrorCodes,
+    ErrorEvent,
+    ErrorInfo,
+    ErrorType,
+    EventName,
+    MeasurementEntries,
+    OperationEndEvent,
+    OperationErrorEvent,
+    OperationStartEvent,
+    TelemetryEvent,
+} from "./event";
 
 interface RichError extends Error {
     isUserError?: boolean;
     errorCode?: number;
 }
 
-let _isDebug: boolean = false;
-let _reporter: TelemetryReporter;
+let isDebug: boolean = false;
+let reporter: TelemetryReporter;
 
 /**
  * Initialize TelemetryReporter by parsing attributes from a JSON file.
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
- * @param _debug If set as true, debug information be printed to console.
+ * @param debug If set as true, debug information be printed to console.
  */
-export async function initializeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void> {
+export async function initializeFromJsonFile(jsonFilepath: string, debug?: boolean): Promise<void> {
     if (!await fse.pathExists(jsonFilepath)) {
         throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
     }
 
     const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-    initialize(`${publisher}.${name}`, version, aiKey, !!_debug);
+    initialize(`${publisher}.${name}`, version, aiKey, !!debug);
 }
 
 /**
@@ -31,17 +43,17 @@ export async function initializeFromJsonFile(jsonFilepath: string, _debug?: bool
  * @param extensionId Identifier of the extension, used as prefix of EventName in telemetry data.
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
- * @param _debug If set as true, debug information be printed to console.
+ * @param debug If set as true, debug information be printed to console.
  */
-export function initialize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void {
-    if (_reporter) {
+export function initialize(extensionId: string, version: string, aiKey: string, debug?: boolean): void {
+    if (reporter) {
         throw new Error("TelemetryReporter already initilized.");
     }
 
     if (aiKey) {
-        _reporter = new TelemetryReporter(extensionId, version, aiKey);
+        reporter = new TelemetryReporter(extensionId, version, aiKey);
     }
-    _isDebug = !!_debug;
+    isDebug = !!debug;
 }
 
 /**
@@ -65,10 +77,13 @@ export function setErrorCode(err: Error, errorCode: number): void {
  * @param cb The callback function with a unique Id passed by its 1st parameter.
  * @returns The instrumented callback.
  */
-export function instrumentOperation(operationName: string, cb: (_operationId: string, ...args: any[]) => any): (...args: any[]) => any {
+export function instrumentOperation(
+    operationName: string,
+    cb: (operationId: string, ...args: any[]) => any,
+): (...args: any[]) => any {
     return async (...args: any[]) => {
-        let error = undefined;
-        let operationId = createUuid();
+        let error;
+        const operationId = createUuid();
         const startAt: number = Date.now();
 
         try {
@@ -81,7 +96,7 @@ export function instrumentOperation(operationName: string, cb: (_operationId: st
             const duration = Date.now() - startAt;
             sendOperationEnd(operationId, operationName, duration, error);
         }
-    }
+    };
 }
 
 /**
@@ -92,8 +107,8 @@ export function instrumentOperation(operationName: string, cb: (_operationId: st
 export function sendOperationStart(operationId: string, operationName: string) {
     const event: OperationStartEvent = {
         eventName: EventName.OPERATION_START,
-        operationId: operationId,
-        operationName: operationName
+        operationId,
+        operationName,
     };
 
     sendEvent(event);
@@ -109,10 +124,10 @@ export function sendOperationStart(operationId: string, operationName: string) {
 export function sendOperationEnd(operationId: string, operationName: string, duration: number, err?: Error) {
     const event: OperationEndEvent = {
         eventName: EventName.OPERATION_END,
-        operationId: operationId,
-        operationName: operationName,
-        duration: duration,
-        ...extractErrorInfo(err)
+        operationId,
+        operationName,
+        duration,
+        ...extractErrorInfo(err),
     };
 
     sendEvent(event);
@@ -125,14 +140,14 @@ export function sendOperationEnd(operationId: string, operationName: string, dur
 export function sendError(err: Error) {
     const event: ErrorEvent = {
         eventName: EventName.ERROR,
-        ...extractErrorInfo(err)
+        ...extractErrorInfo(err),
     };
 
     sendEvent(event);
 }
 
 /**
- * Send an ERROR event during an operation, carrying id and name of the oepration. 
+ * Send an ERROR event during an operation, carrying id and name of the oepration.
  * @param operationId Unique id of the operation.
  * @param operationName Name of the operation.
  * @param err An Error instance containing details.
@@ -140,9 +155,9 @@ export function sendError(err: Error) {
 export function sendOperationError(operationId: string, operationName: string, err: Error) {
     const event: OperationErrorEvent = {
         eventName: EventName.ERROR,
-        operationId: operationId,
-        operationName: operationName,
-        ...extractErrorInfo(err)
+        operationId,
+        operationName,
+        ...extractErrorInfo(err),
     };
 
     sendEvent(event);
@@ -158,7 +173,7 @@ export function createUuid(): string {
 function extractErrorInfo(err?: Error): ErrorInfo {
     if (!err) {
         return {
-            errorCode: ErrorCodes.NO_ERROR
+            errorCode: ErrorCodes.NO_ERROR,
         };
     }
 
@@ -167,12 +182,12 @@ function extractErrorInfo(err?: Error): ErrorInfo {
         errorCode: richError.errorCode || ErrorCodes.GENERAL_ERROR,
         errorType: richError.isUserError ? ErrorType.USER_ERROR : ErrorType.SYSTEM_ERROR,
         message: err.message,
-        stack: err.stack
+        stack: err.stack,
     };
 }
 
 function sendEvent(event: TelemetryEvent) {
-    if (!_reporter) {
+    if (!reporter) {
         return;
     }
 
@@ -192,9 +207,10 @@ function sendEvent(event: TelemetryEvent) {
         }
     }
 
-    _reporter.sendTelemetryEvent(event.eventName, dimensions, measurements);
+    reporter.sendTelemetryEvent(event.eventName, dimensions, measurements);
 
-    if (_isDebug) {
+    if (isDebug) {
+        // tslint:disable-next-line:no-console
         console.log(event.eventName, { eventName: event.eventName, dimensions, measurements });
     }
 }
