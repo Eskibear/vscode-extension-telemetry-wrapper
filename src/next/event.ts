@@ -3,6 +3,7 @@ export enum EventName {
     INFO = "info",
     OPERATION_START = "opStart",
     OPERATION_END = "opEnd",
+    OPERATION_STEP = "opStep",
 }
 
 export namespace ErrorCodes {
@@ -31,28 +32,35 @@ export interface ErrorInfo {
     stack?: string;
 }
 
+export interface Procedure {
+    duration: number;
+}
+
 export interface OperationStartEvent extends TelemetryEvent, Operation {
 }
 
-export interface OperationEndEvent extends TelemetryEvent, Operation, ErrorInfo {
-    duration: number;
+export interface OperationEndEvent extends TelemetryEvent, Operation, ErrorInfo, Procedure {
 }
 
 export interface OperationErrorEvent extends TelemetryEvent, Operation, ErrorInfo {
 }
 
 export interface ErrorEvent extends TelemetryEvent, ErrorInfo {
+}
 
+export interface OperationStepEvent extends TelemetryEvent, Procedure, ErrorInfo {
+    operationId: string;
+    stepName: string;
 }
 
 export const DimensionEntries: string[] = [
-    "eventNames",
     "operationId",
     "operationName",
     "errorCode",
     "errorType",
     "message",
     "stack",
+    "stepName",
 ];
 
 export const MeasurementEntries: string[] = [
