@@ -1,4 +1,4 @@
-import { OperationStartEvent, OperationEndEvent, OperationalErrorEvent, ErrorEvent, ErrorCodes, ErrorType, TelemetryEvent, ErrorInfo, EventName, DimensionEntries, MeasurementEntries } from "./event";
+import { OperationStartEvent, OperationEndEvent, OperationErrorEvent, ErrorEvent, ErrorCodes, ErrorType, TelemetryEvent, ErrorInfo, EventName, DimensionEntries, MeasurementEntries } from "./event";
 import * as uuidv4 from "uuid/v4";
 import * as fse from 'fs-extra';
 import TelemetryReporter from "vscode-extension-telemetry";
@@ -138,7 +138,7 @@ export function sendError(err: Error) {
  * @param err An Error instance containing details.
  */
 export function sendOperationError(operationId: string, operationName: string, err: Error) {
-    const event: OperationalErrorEvent = {
+    const event: OperationErrorEvent = {
         eventName: EventName.ERROR,
         operationId: operationId,
         operationName: operationName,
