@@ -170,6 +170,14 @@ export function createUuid(): string {
     return uuidv4();
 }
 
+/**
+ * Dispose the reporter.
+ */
+export async function dispose(): Promise<any> {
+    if (reporter) {
+        return await reporter.dispose();
+    }
+}
 function extractErrorInfo(err?: Error): ErrorInfo {
     if (!err) {
         return {
