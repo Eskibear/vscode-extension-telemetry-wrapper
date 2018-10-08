@@ -46,7 +46,6 @@ export interface ErrorEvent extends TelemetryEvent, ErrorInfo {
 }
 
 export const DimensionEntries: string[] = [
-    "eventNames",
     "operationId",
     "operationName",
     "errorCode",
