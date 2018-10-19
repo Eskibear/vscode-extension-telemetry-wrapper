@@ -207,6 +207,14 @@ export function createUuid(): string {
     return uuidv4();
 }
 
+/**
+ * Dispose the reporter.
+ */
+export async function dispose(): Promise<any> {
+    if (reporter) {
+        return await reporter.dispose();
+    }
+}
 function extractErrorInfo(err?: Error): ErrorInfo {
     if (!err) {
         return {
@@ -231,7 +239,7 @@ function sendEvent(event: TelemetryEvent) {
     const dimensions: { [key: string]: string } = {};
     for (const key of DimensionEntries) {
         const value = (event as any)[key];
-        if (value) {
+        if (value !== undefined) {
             dimensions[key] = String(value);
         }
     }
@@ -239,7 +247,7 @@ function sendEvent(event: TelemetryEvent) {
     const measurements: { [key: string]: number } = {};
     for (const key of MeasurementEntries) {
         const value = (event as any)[key];
-        if (value) {
+        if (value !== undefined) {
             measurements[key] = value;
         }
     }
