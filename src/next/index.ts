@@ -184,7 +184,6 @@ export async function instrumentOperationStep(
             return await cb(...args);
         } catch (e) {
             error = e;
-            sendError(e);
             throw e;
         } finally {
             const event: OperationStepEvent = {
