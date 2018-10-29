@@ -1,5 +1,5 @@
 import { createNamespace, Namespace } from "continuation-local-storage";
-import * as fse from "fs-extra";
+import * as fs from "fs";
 import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { ExitCode } from "./ExitCode";
@@ -14,12 +14,17 @@ export namespace TelemetryWrapper {
     let sessionNamespace: Namespace;
 
     export async function initilizeFromJsonFile(fsPath: string): Promise<void> {
-        if (await fse.pathExists(fsPath)) {
-            const { publisher, name, version, aiKey } = await fse.readJSON(fsPath);
-            initilize(publisher, name, version, aiKey);
-        } else {
-            throw new Error(`The Json file '${fsPath}' does not exist.`);
-        }
+        return new Promise<void>((resolve, reject) => {
+            fs.exists(fsPath, (exists) => {
+                if (exists) {
+                    const { publisher, name, version, aiKey } = require(fsPath);
+                    initilize(publisher, name, version, aiKey);
+                    return resolve();
+                } else {
+                    return reject(new Error(`The Json file '${fsPath}' does not exist.`));
+                }
+            });
+        });
     }
 
     export function initilize(publisher: string, name: string, version: string, aiKey: string): void {
