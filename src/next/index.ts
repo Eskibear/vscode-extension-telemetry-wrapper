@@ -106,7 +106,7 @@ export function instrumentOperation(
  * @param command A unique identifier for the command.
  * @param cb A command handler function.
  */
-export function instrumentOperationAsCommand(command: string, cb: (...args: any[]) => any): vscode.Disposable {
+export function instrumentOperationAsVsCodeCommand(command: string, cb: (...args: any[]) => any): vscode.Disposable {
     const instrumented = instrumentOperation(command, async (operationId, ...args) => await cb(...args));
     return vscode.commands.registerCommand(command, instrumented);
 }
