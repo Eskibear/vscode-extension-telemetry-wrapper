@@ -1,5 +1,6 @@
 import * as fse from "fs-extra";
 import * as uuidv4 from "uuid/v4";
+import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 import {
     DimensionEntries,
@@ -97,6 +98,17 @@ export function instrumentOperation(
             sendOperationEnd(operationId, operationName, duration, error);
         }
     };
+}
+
+/**
+ * A shortcut to instrument and operation and register it as a VSCode command.
+ * Note that operation Id will no longer be accessible in this approach.
+ * @param command A unique identifier for the command.
+ * @param cb A command handler function.
+ */
+export function instrumentOperationAsCommand(command: string, cb: (...args: any[]) => any): vscode.Disposable {
+    const instrumented = instrumentOperation(command, async (operationId, ...args) => await cb(...args));
+    return vscode.commands.registerCommand(command, instrumented);
 }
 
 /**
