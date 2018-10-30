@@ -1,4 +1,4 @@
-import * as fse from "fs-extra";
+import * as fs from "fs";
 import * as uuidv4 from "uuid/v4";
 import TelemetryReporter from "vscode-extension-telemetry";
 import {
@@ -30,12 +30,17 @@ let reporter: TelemetryReporter;
  * @param debug If set as true, debug information be printed to console.
  */
 export async function initializeFromJsonFile(jsonFilepath: string, debug?: boolean): Promise<void> {
-    if (!await fse.pathExists(jsonFilepath)) {
-        throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
-    }
-
-    const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-    initialize(`${publisher}.${name}`, version, aiKey, !!debug);
+    return new Promise<void>((resolve, reject) => {
+        fs.exists(jsonFilepath, (exists) => {
+            if (exists) {
+                const { publisher, name, version, aiKey } = require(jsonFilepath);
+                initialize(`${publisher}.${name}`, version, aiKey, !!debug);
+                return resolve();
+            } else {
+                return reject(new Error(`The Json file '${jsonFilepath}' does not exist.`));
+            }
+        });
+    });
 }
 
 /**
