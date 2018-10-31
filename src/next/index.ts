@@ -1,5 +1,6 @@
-import * as fse from "fs-extra";
+import * as fs from "fs";
 import * as uuidv4 from "uuid/v4";
+import * as vscode from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 import {
     DimensionEntries,
@@ -31,12 +32,17 @@ let reporter: TelemetryReporter;
  * @param debug If set as true, debug information be printed to console.
  */
 export async function initializeFromJsonFile(jsonFilepath: string, debug?: boolean): Promise<void> {
-    if (!await fse.pathExists(jsonFilepath)) {
-        throw new Error(`The Json file '${jsonFilepath}' does not exist.`);
-    }
-
-    const { publisher, name, version, aiKey } = await fse.readJSON(jsonFilepath);
-    initialize(`${publisher}.${name}`, version, aiKey, !!debug);
+    return new Promise<void>((resolve, reject) => {
+        fs.exists(jsonFilepath, (exists) => {
+            if (exists) {
+                const { publisher, name, version, aiKey } = require(jsonFilepath);
+                initialize(`${publisher}.${name}`, version, aiKey, !!debug);
+                return resolve();
+            } else {
+                return reject(new Error(`The Json file '${jsonFilepath}' does not exist.`));
+            }
+        });
+    });
 }
 
 /**
@@ -98,6 +104,17 @@ export function instrumentOperation(
             sendOperationEnd(operationId, operationName, duration, error);
         }
     };
+}
+
+/**
+ * A shortcut to instrument and operation and register it as a VSCode command.
+ * Note that operation Id will no longer be accessible in this approach.
+ * @param command A unique identifier for the command.
+ * @param cb A command handler function.
+ */
+export function instrumentOperationAsVsCodeCommand(command: string, cb: (...args: any[]) => any): vscode.Disposable {
+    const instrumented = instrumentOperation(command, async (operationId, ...args) => await cb(...args));
+    return vscode.commands.registerCommand(command, instrumented);
 }
 
 /**

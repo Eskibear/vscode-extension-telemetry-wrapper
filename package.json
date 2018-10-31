@@ -6,7 +6,7 @@
   "types": "./lib/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "tsc -p .",
+    "prepare": "tsc -p .",
     "watch": "tsc -w -p .",
     "dev-postinstall": "node ./node_modules/vscode/bin/install",
     "tslint": "tslint -t verbose src/**/*.ts"
@@ -22,13 +22,11 @@
   },
   "dependencies": {
     "continuation-local-storage": "^3.2.1",
-    "fs-extra": "^5.0.0",
     "uuid": "^3.1.0",
     "vscode-extension-telemetry": "^0.0.22"
   },
   "devDependencies": {
     "@types/continuation-local-storage": "^3.2.1",
-    "@types/fs-extra": "^5.0.0",
     "@types/node": "^8.5.7",
     "@types/uuid": "^3.4.3",
     "tslint": "^5.11.0",
