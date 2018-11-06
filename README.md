@@ -41,9 +41,38 @@ It sends `commandStart` and `commandEnd` for execution of each the command.
     const myHello = (...args) => {
         vscode.window.showInformationMessage("Hello: " + args.join(" "));
     };
-    // _operationId contains a unique Id for each execution of `myHello`, in case you want to access it.
-    const instrumented = instrumentOperation(name, (_operationId, myargs) => myHello(myargs));
-    vscode.commands.registerCommand(name, instrumented);
+
+    // without the wrapper
+    const myCommand = vscode.commands.registerCommand(name, myHello);
+
+    // with the wrapper
+    const myCommand = instrumentOperationAsVsCodeCommand(name, myHello);
+    ```
+
+- Instrument an operation with multiple steps.
+    ```ts
+    const name = "my.multiStepTask";
+    const step1 = () => {
+        vscode.window.showInformationMessage("Step 1: Start.");
+    }
+    const step2 = (...args) => {
+        vscode.window.showInformationMessage("Step 2: " + args.join(" "));
+    }
+
+    // without the wrapper.
+    const multiStepTask = (...args) => {
+        step1();
+        step2(..args);
+    };
+    vscode.commands.registerCommand(name, multiStepTask);
+
+    // with the wrapper. 
+    // operationId contains a unique Id for each execution of the task.
+    const instrumentedMultiStepTask = instrumentOperation(name, (operationId, ...args) => {
+        instrumentOperationStep(operationId, "step1", step1)();
+        instrumentOperationStep(operationId, "step2", step2)(...args);
+    });
+    vscode.commands.registerCommand(name, instrumentedMultiStepTask);
     ```
 
 - Mark an Error as user error.
