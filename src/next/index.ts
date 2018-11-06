@@ -13,6 +13,7 @@ import {
     OperationEndEvent,
     OperationErrorEvent,
     OperationStartEvent,
+    OperationStepEvent,
     TelemetryEvent,
 } from "./event";
 
@@ -196,6 +197,41 @@ export function sendInfo(
         // tslint:disable-next-line:no-console
         console.log(EventName.INFO, { eventName: EventName.INFO, dimensions, measurements });
     }
+}
+
+/**
+ * Instrument callback for a procedure (regarded as a step in an operation).
+ * @param operationId A unique identifier for the operation to which the step belongs.
+ * @param stepName Name of the step.
+ * @param cb The callback function with a unique Id passed by its 1st parameter.
+ * @returns The instrumented callback.
+ */
+export async function instrumentOperationStep(
+    operationId: string,
+    stepName: string,
+    cb: (...args: any[]) => any,
+): Promise<any> {
+    return async (...args: any[]) => {
+        let error;
+        const startAt: number = Date.now();
+
+        try {
+            return await cb(...args);
+        } catch (e) {
+            error = e;
+            throw e;
+        } finally {
+            const event: OperationStepEvent = {
+                eventName: EventName.OPERATION_STEP,
+                operationId,
+                stepName,
+                duration: Date.now() - startAt,
+                ...extractErrorInfo(error),
+            };
+
+            sendEvent(event);
+        }
+    };
 }
 
 /**
