@@ -182,6 +182,24 @@ export function sendOperationError(operationId: string, operationName: string, e
 }
 
 /**
+ * Send an INFO event during an operation.
+ * Note that: operationId will overwrite dimensions['operationId'] if it exists.
+ * @param operationId Unique id of the operation.
+ * @param dimensions The object recorded as customDimensions.
+ * @param measurements The object recored as customMeasurements.
+ */
+export function sendInfo(
+    operationId: string,
+    dimensions: { [key: string]: string },
+    measurements: { [key: string]: number }) {
+    reporter.sendTelemetryEvent(EventName.INFO, { ...dimensions, operationId }, measurements);
+    if (isDebug) {
+        // tslint:disable-next-line:no-console
+        console.log(EventName.INFO, { eventName: EventName.INFO, dimensions, measurements });
+    }
+}
+
+/**
  * Instrument callback for a procedure (regarded as a step in an operation).
  * @param operationId A unique identifier for the operation to which the step belongs.
  * @param stepName Name of the step.
