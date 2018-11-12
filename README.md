@@ -3,21 +3,20 @@
 [![downloads per month](https://img.shields.io/npm/dm/vscode-extension-telemetry-wrapper.svg)](https://www.npmjs.org/package/vscode-extension-telemetry-wrapper)
 
 Inject code to send telemetry to Application Insight when register commands.
-It sends `commandStart` and `commandEnd` for execution of each the command.
 
 ## Version map
 |vscode-extension-telemetry-wrapper|vscode-extension-telemetry| 
 |---|---|
-|0.3.2|^0.0.22|
+|~0.3.2|^0.0.22|
 |0.3.1|^0.0.18|
 |0.2.4|^0.0.18|
 |~~0.2.3 (Deprecated)~~|~~^0.0.17~~|
 |0.2.2|^0.0.17|
 |0.2.1|0.0.10|
-|0.1.x|0.0.10|
+|~0.1.0|0.0.10|
 
 
-## Usage for 0.3.x (New)
+## Usage for 0.3.x
 ### Examples
 - Initialize the wrapper on activation.
     ```ts
@@ -120,6 +119,31 @@ function initialize(extensionId: string, version: string, aiKey: string, _debug?
 ```
 </details>
 
+<details><summary>Instrumentation.</summary>
+
+* Instrument an operation.
+```typescript
+/**
+ * Instrument callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
+ * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
+ * @param cb The callback function with a unique Id passed by its 1st parameter.
+ * @returns The instrumented callback.
+ */
+function instrumentOperation(operationName: string, cb: (_operationId: string, ...args: any[]) => any): (...args: any[]) => any;
+```
+
+* Instrument a VS Code command.
+```ts
+/**
+ * A shortcut to instrument and operation and register it as a VSCode command.
+ * Note that operation Id will no longer be accessible in this approach.
+ * @param command A unique identifier for the command.
+ * @param cb A command handler function.
+ */
+export function instrumentOperationAsVsCodeCommand(command: string, cb: (...args: any[]) => any): vscode.Disposable;
+```
+</details>
+
 <details><summary>Mark on an Error.</summary>
 
 ```typescript
@@ -133,16 +157,6 @@ function setUserError(err: Error): void;
  * @param errorCode A custom error code.
  */
 function setErrorCode(err: Error, errorCode: number): void;
-```
-* Instrument an operation.
-```typescript
-/**
- * Instrument callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
- * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
- * @param cb The callback function with a unique Id passed by its 1st parameter.
- * @returns The instrumented callback.
- */
-function instrumentOperation(operationName: string, cb: (_operationId: string, ...args: any[]) => any): (...args: any[]) => any;
 ```
 </details>
 
@@ -178,7 +192,21 @@ export declare function sendError(err: Error): void;
  * @param err An Error instance containing details.
  */
 function sendOperationalError(operationId: string, operationName: string, err: Error): void;
+
+/**
+ * Send an INFO event during an operation.
+ * Note that: operationId will overwrite dimensions['operationId'] if it exists.
+ * @param operationId Unique id of the operation.
+ * @param dimensions The object recorded as customDimensions.
+ * @param measurements The object recored as customMeasurements.
+ */
+export function sendInfo(
+    operationId: string,
+    dimensions: { [key: string]: string },
+    measurements: { [key: string]: number }
+);
 ```
+
 </details>
 
 <details><summary>Create a Unique Id.</summary>
@@ -191,7 +219,10 @@ function createUuid(): string;
 ```
 </details>
 
-## Usage for 0.2.x
+## Usage for 0.2.x (Will be deprecated since 0.4.0)
+
+It sends `commandStart` and `commandEnd` for execution of each the command.
+
 <details>
 <summary>Examples.</summary>
 

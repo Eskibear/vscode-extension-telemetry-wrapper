@@ -18,6 +18,9 @@ export class Session {
         this.startAt = new Date();
     }
 
+    /**
+     * @deprecated
+     */
     public getCustomEvent(): ICustomEvent {
         const ret: ICustomEvent = {};
         const extraPropertiesObject = Object.assign(
@@ -41,6 +44,9 @@ export class Session {
         return ret;
     }
 
+    /**
+     * @deprecated
+     */
     public end(): void {
         this.stopAt = new Date();
         this.exitCode = this.exitCode || ExitCode.SUCCESS;

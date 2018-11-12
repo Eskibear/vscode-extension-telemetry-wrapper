@@ -13,6 +13,9 @@ export namespace TelemetryWrapper {
     let reporter: TelemetryReporter;
     let sessionNamespace: Namespace;
 
+    /**
+     * @deprecated
+     */
     export async function initilizeFromJsonFile(fsPath: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             fs.exists(fsPath, (exists) => {
@@ -27,6 +30,9 @@ export namespace TelemetryWrapper {
         });
     }
 
+    /**
+     * @deprecated
+     */
     export function initilize(publisher: string, name: string, version: string, aiKey: string): void {
         if (reporter) {
             throw new Error("TelemetryReporter already initilized.");
@@ -40,6 +46,9 @@ export namespace TelemetryWrapper {
         }
     }
 
+    /**
+     * @deprecated
+     */
     export function registerCommand(command: string, callback: (...args: any[]) => any): vscode.Disposable {
         return vscode.commands.registerCommand(command, async (param: any[]) => {
             await new Promise<void>((resolve, reject) => {
@@ -64,15 +73,24 @@ export namespace TelemetryWrapper {
         });
     }
 
+    /**
+     * @deprecated
+     */
     export function getReporter(): TelemetryReporter {
         return reporter;
     }
 
+    /**
+     * @deprecated
+     */
     export function startSession(name: string): Session {
         const trans: Session = new Session(name);
         return trans;
     }
 
+    /**
+     * @deprecated
+     */
     export function endSession(session: Session) {
         if (session) {
             session.end();
@@ -88,6 +106,9 @@ export namespace TelemetryWrapper {
         }
     }
 
+    /**
+     * @deprecated
+     */
     export function currentSession() {
         return sessionNamespace && sessionNamespace.get(SESSION_KEY);
     }
@@ -111,6 +132,7 @@ export namespace TelemetryWrapper {
 
     /**
      * Send a telemetry record with event name "error".
+     * @deprecated
      * @param message a string or a JSON string.
      * @param exitCode
      */
@@ -128,6 +150,7 @@ export namespace TelemetryWrapper {
 
     /**
      * Send a telemetry record with event name "info".
+     * @deprecated
      * @param message a string or a JSON string.
      * @param exitCode
      */
@@ -142,6 +165,7 @@ export namespace TelemetryWrapper {
 
     /**
      * Send a telemetry record with event name "warn".
+     * @deprecated
      * @param message a string or a JSON string.
      * @param exitCode
      */
@@ -156,6 +180,7 @@ export namespace TelemetryWrapper {
 
     /**
      * Send a telemetry record with event name "verbose".
+     * @deprecated
      * @param message a string or a JSON string.
      * @param exitCode
      */
@@ -168,6 +193,9 @@ export namespace TelemetryWrapper {
         });
     }
 
+    /**
+     * @deprecated
+     */
     export function sendTelemetryEvent(
         eventName: string,
         properties?: { [key: string]: string },
@@ -181,6 +209,9 @@ export namespace TelemetryWrapper {
         });
     }
 
+    /**
+     * @deprecated
+     */
     export enum EventType {
         ACTIVATION = "activation",
         FATAL = "fatal",
