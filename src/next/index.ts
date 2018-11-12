@@ -206,11 +206,11 @@ export function sendInfo(
  * @param cb The callback function with a unique Id passed by its 1st parameter.
  * @returns The instrumented callback.
  */
-export async function instrumentOperationStep(
+export function instrumentOperationStep(
     operationId: string,
     stepName: string,
     cb: (...args: any[]) => any,
-): Promise<any> {
+): (...args: any[]) => any {
     return async (...args: any[]) => {
         let error;
         const startAt: number = Date.now();
