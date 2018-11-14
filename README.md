@@ -193,6 +193,13 @@ export declare function sendError(err: Error): void;
  */
 function sendOperationalError(operationId: string, operationName: string, err: Error): void;
 
+ /**
+  * Send an INFO event during an operation.
+  * @param operationId Unique id of the operation.
+  * @param data Values of string type go to customDimensions, values of number type go to customMeasurements.
+  */
+export function sendInfo(operationId: string, data: { [key: string]: string | number }): void;
+
 /**
  * Send an INFO event during an operation.
  * Note that: operationId will overwrite dimensions['operationId'] if it exists.
@@ -204,7 +211,7 @@ export function sendInfo(
     operationId: string,
     dimensions: { [key: string]: string },
     measurements: { [key: string]: number }
-);
+): void;
 ```
 
 </details>

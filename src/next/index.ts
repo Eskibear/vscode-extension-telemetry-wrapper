@@ -181,6 +181,13 @@ export function sendOperationError(operationId: string, operationName: string, e
     sendEvent(event);
 }
 
+ /**
+  * Send an INFO event during an operation.
+  * @param operationId Unique id of the operation.
+  * @param data Values of string type go to customDimensions, values of number type go to customMeasurements.
+  */
+export function sendInfo(operationId: string, data: { [key: string]: string | number }): void;
+
 /**
  * Send an INFO event during an operation.
  * Note that: operationId will overwrite dimensions['operationId'] if it exists.
@@ -191,12 +198,38 @@ export function sendOperationError(operationId: string, operationName: string, e
 export function sendInfo(
     operationId: string,
     dimensions: { [key: string]: string },
-    measurements: { [key: string]: number }) {
-    reporter.sendTelemetryEvent(EventName.INFO, { ...dimensions, operationId }, measurements);
-    if (isDebug) {
-        // tslint:disable-next-line:no-console
-        console.log(EventName.INFO, { eventName: EventName.INFO, dimensions, measurements });
+    measurements: { [key: string]: number },
+): void;
+
+/**
+ * Implementation of sendInfo.
+ */
+export function sendInfo(
+    operationId: string,
+    dimensionsOrMeasurements: { [key: string]: string } | { [key: string]: string | number },
+    optionalMeasurements?: { [key: string]: number },
+): void {
+    let dimensions: { [key: string]: string };
+    let measurements: { [key: string]: number };
+
+    if (optionalMeasurements) {
+        dimensions = dimensionsOrMeasurements as { [key: string]: string };
+        measurements = optionalMeasurements;
+    } else {
+        dimensions = {};
+        measurements = {};
+        for (const key in dimensionsOrMeasurements) {
+            if (typeof dimensionsOrMeasurements[key] === "string") {
+                dimensions[key] = dimensionsOrMeasurements[key] as string;
+            } else if (typeof dimensionsOrMeasurements[key] === "number") {
+                measurements[key] = dimensionsOrMeasurements[key] as number;
+            } else {
+                // discard unsupported types.
+            }
+        }
     }
+
+    sendTelemetryEvent(EventName.INFO, { ...dimensions, operationId }, measurements);
 }
 
 /**
@@ -286,10 +319,20 @@ function sendEvent(event: TelemetryEvent) {
         }
     }
 
-    reporter.sendTelemetryEvent(event.eventName, dimensions, measurements);
+    sendTelemetryEvent(event.eventName, dimensions, measurements);
+}
 
+function sendTelemetryEvent(
+    eventName: string,
+    dimensions?: {
+        [key: string]: string;
+    },
+    measurements?: {
+        [key: string]: number;
+    }): void {
+    reporter.sendTelemetryEvent(eventName, dimensions, measurements);
     if (isDebug) {
         // tslint:disable-next-line:no-console
-        console.log(event.eventName, { eventName: event.eventName, dimensions, measurements });
+        console.log(eventName, { eventName, dimensions, measurements });
     }
 }
