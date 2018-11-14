@@ -7,6 +7,7 @@ Inject code to send telemetry to Application Insight when register commands.
 ## Version map
 |vscode-extension-telemetry-wrapper|vscode-extension-telemetry| 
 |---|---|
+|~0.3.4|^0.1.0|
 |~0.3.2|^0.0.22|
 |0.3.1|^0.0.18|
 |0.2.4|^0.0.18|
