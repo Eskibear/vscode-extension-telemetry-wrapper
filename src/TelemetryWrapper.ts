@@ -20,7 +20,7 @@ export namespace TelemetryWrapper {
         return new Promise<void>((resolve, reject) => {
             fs.exists(fsPath, (exists) => {
                 if (exists) {
-                    const { publisher, name, version, aiKey } = require(fsPath);
+                    const { publisher, name, version, aiKey } = JSON.parse(fs.readFileSync(fsPath, "utf-8"));
                     initilize(publisher, name, version, aiKey);
                     return resolve();
                 } else {
