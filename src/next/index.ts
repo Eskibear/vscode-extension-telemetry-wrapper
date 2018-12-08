@@ -35,7 +35,7 @@ export async function initializeFromJsonFile(jsonFilepath: string, debug?: boole
     return new Promise<void>((resolve, reject) => {
         fs.exists(jsonFilepath, (exists) => {
             if (exists) {
-                const { publisher, name, version, aiKey } = require(jsonFilepath);
+                const { publisher, name, version, aiKey } = JSON.parse(fs.readFileSync(jsonFilepath, "utf-8"));
                 initialize(`${publisher}.${name}`, version, aiKey, !!debug);
                 return resolve();
             } else {

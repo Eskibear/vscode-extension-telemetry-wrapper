@@ -22,15 +22,15 @@
   },
   "dependencies": {
     "continuation-local-storage": "^3.2.1",
-    "uuid": "^3.1.0",
+    "uuid": "^3.3.2",
     "vscode-extension-telemetry": "^0.1.0"
   },
   "devDependencies": {
     "@types/continuation-local-storage": "^3.2.1",
-    "@types/node": "^8.5.7",
-    "@types/uuid": "^3.4.3",
+    "@types/node": "^8.10.38",
+    "@types/uuid": "^3.4.4",
     "tslint": "^5.11.0",
     "typescript": "^2.9.2",
-    "vscode": "^1.1.21"
+    "vscode": "^1.1.26"
   }
 }
