@@ -21,12 +21,10 @@
     "url": "https://github.com/Eskibear/vscode-extension-telemetry-wrapper.git"
   },
   "dependencies": {
-    "continuation-local-storage": "^3.2.1",
     "uuid": "^3.3.2",
     "vscode-extension-telemetry": "^0.1.1"
   },
   "devDependencies": {
-    "@types/continuation-local-storage": "^3.2.1",
     "@types/node": "^8.10.40",
     "@types/uuid": "^3.4.4",
     "tslint": "^5.12.1",
