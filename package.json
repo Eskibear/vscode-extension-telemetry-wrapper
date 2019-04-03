@@ -1,6 +1,6 @@
 {
   "name": "vscode-extension-telemetry-wrapper",
-  "version": "0.3.9",
+  "version": "0.4.0",
   "description": "A module to auto send telemetry for each registered command, using vscode-extension-telemetry.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -25,10 +25,10 @@
     "vscode-extension-telemetry": "^0.1.1"
   },
   "devDependencies": {
-    "@types/node": "^8.10.40",
+    "@types/node": "^8.10.45",
     "@types/uuid": "^3.4.4",
-    "tslint": "^5.12.1",
+    "tslint": "^5.15.0",
     "typescript": "^2.9.2",
-    "vscode": "^1.1.29"
+    "vscode": "^1.1.33"
   }
 }
