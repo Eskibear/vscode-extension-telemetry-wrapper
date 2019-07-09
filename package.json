@@ -8,11 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "tsc -p .",
     "watch": "tsc -w -p .",
-    "dev-postinstall": "node ./node_modules/vscode/bin/install",
     "tslint": "tslint -t verbose src/**/*.ts"
   },
   "engines": {
-    "vscode": "^1.5.0"
+    "vscode": "^1.14.0"
   },
   "author": "eskibear",
   "license": "MIT",
@@ -22,13 +21,13 @@
   },
   "dependencies": {
     "uuid": "^3.3.2",
-    "vscode-extension-telemetry": "^0.1.1"
+    "vscode-extension-telemetry": "^0.1.2"
   },
   "devDependencies": {
-    "@types/node": "^8.10.45",
-    "@types/uuid": "^3.4.4",
-    "tslint": "^5.15.0",
-    "typescript": "^2.9.2",
-    "vscode": "^1.1.33"
+    "@types/node": "^10.14.12",
+    "@types/uuid": "^3.4.5",
+    "@types/vscode": "1.14.0",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3"
   }
 }

@@ -54,7 +54,7 @@ export async function initializeFromJsonFile(jsonFilepath: string, debug?: boole
  */
 export function initialize(extensionId: string, version: string, aiKey: string, debug?: boolean): void {
     if (reporter) {
-        throw new Error("TelemetryReporter already initilized.");
+        throw new Error("TelemetryReporter already initialized.");
     }
 
     if (aiKey) {
@@ -79,7 +79,7 @@ export function setErrorCode(err: Error, errorCode: number): void {
 }
 
 /**
- * Instrument callback for a command to auto send OPEARTION_START, OPERATION_END, ERROR telemetry.
+ * Instrument callback for a command to auto send OPERATION_START, OPERATION_END, ERROR telemetry.
  * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
  * @param cb The callback function with a unique Id passed by its 1st parameter.
  * @returns The instrumented callback.
@@ -165,7 +165,7 @@ export function sendError(err: Error) {
 }
 
 /**
- * Send an ERROR event during an operation, carrying id and name of the oepration.
+ * Send an ERROR event during an operation, carrying id and name of the operation.
  * @param operationId Unique id of the operation.
  * @param operationName Name of the operation.
  * @param err An Error instance containing details.
@@ -193,7 +193,7 @@ export function sendInfo(operationId: string, data: { [key: string]: string | nu
  * Note that: operationId will overwrite dimensions['operationId'] if it exists.
  * @param operationId Unique id of the operation.
  * @param dimensions The object recorded as customDimensions.
- * @param measurements The object recored as customMeasurements.
+ * @param measurements The object recorded as customMeasurements.
  */
 export function sendInfo(
     operationId: string,
