@@ -82,11 +82,13 @@ export function setErrorCode(err: Error, errorCode: number): void {
  * Instrument callback for a command to auto send OPERATION_START, OPERATION_END, ERROR telemetry.
  * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
  * @param cb The callback function with a unique Id passed by its 1st parameter.
+ * @param thisArg The `this` context used when invoking the handler function.
  * @returns The instrumented callback.
  */
 export function instrumentOperation(
     operationName: string,
     cb: (operationId: string, ...args: any[]) => any,
+    thisArg?: any
 ): (...args: any[]) => any {
     return async (...args: any[]) => {
         let error;
@@ -95,7 +97,7 @@ export function instrumentOperation(
 
         try {
             sendOperationStart(operationId, operationName);
-            return await cb(operationId, ...args);
+            return await cb.apply(thisArg, [operationId, ...args]);
         } catch (e) {
             error = e;
             sendOperationError(operationId, operationName, e);
@@ -111,9 +113,10 @@ export function instrumentOperation(
  * Note that operation Id will no longer be accessible in this approach.
  * @param command A unique identifier for the command.
  * @param cb A command handler function.
+ * @param thisArg The `this` context used when invoking the handler function.
  */
-export function instrumentOperationAsVsCodeCommand(command: string, cb: (...args: any[]) => any): vscode.Disposable {
-    const instrumented = instrumentOperation(command, async (operationId, ...args) => await cb(...args));
+export function instrumentOperationAsVsCodeCommand(command: string, cb: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
+    const instrumented = instrumentOperation(command, async (operationId, ...args) => await cb.apply(thisArg, args));
     return vscode.commands.registerCommand(command, instrumented);
 }
 
