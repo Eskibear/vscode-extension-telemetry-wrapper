@@ -80,8 +80,9 @@ export function setErrorCode(err: Error, errorCode: number): void {
 
 /**
  * Instrument callback for a command to auto send OPERATION_START, OPERATION_END, ERROR telemetry.
+ * A unique Id is created and accessible in the callback.
  * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
- * @param cb The callback function with a unique Id passed by its 1st parameter.
+ * @param cb The callback function **with a unique Id passed by its 1st parameter**.
  * @param thisArg The `this` context used when invoking the handler function.
  * @returns The instrumented callback.
  */
@@ -109,6 +110,17 @@ export function instrumentOperation(
 }
 
 /**
+ * Instrument callback for a command to auto send OPERATION_START, OPERATION_END, ERROR telemetry.
+ * @param operationName For extension activation, use "activation", for VS Code commands, use command name.
+ * @param cb The callback function.
+ * @param thisArg The `this` context used when invoking the handler function.
+ * @returns The instrumented callback.
+ */
+export function instrumentSimpleOperation(operationName: string, cb: (...args: any[]) => any, thisArg?: any): (...args: any[]) => any {
+    return instrumentOperation(operationName, async (_operationId, ...args) => await cb.apply(thisArg, args));
+}
+
+/**
  * A shortcut to instrument and operation and register it as a VSCode command.
  * Note that operation Id will no longer be accessible in this approach.
  * @param command A unique identifier for the command.
@@ -116,8 +128,7 @@ export function instrumentOperation(
  * @param thisArg The `this` context used when invoking the handler function.
  */
 export function instrumentOperationAsVsCodeCommand(command: string, cb: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
-    const instrumented = instrumentOperation(command, async (operationId, ...args) => await cb.apply(thisArg, args));
-    return vscode.commands.registerCommand(command, instrumented);
+    return vscode.commands.registerCommand(command, instrumentSimpleOperation(command, cb, thisArg));
 }
 
 /**
@@ -184,11 +195,11 @@ export function sendOperationError(operationId: string, operationName: string, e
     sendEvent(event);
 }
 
- /**
-  * Send an INFO event during an operation.
-  * @param operationId Unique id of the operation.
-  * @param data Values of string type go to customDimensions, values of number type go to customMeasurements.
-  */
+/**
+ * Send an INFO event during an operation.
+ * @param operationId Unique id of the operation.
+ * @param data Values of string type go to customDimensions, values of number type go to customMeasurements.
+ */
 export function sendInfo(operationId: string, data: { [key: string]: string | number }): void;
 
 /**
