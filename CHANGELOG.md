@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+- Support to specify `thisArg` for the callback.
+- Add a new API `instrumentSimpleOperation` which doesn't require the callback to have operation id as the 1st parameter.
+
 ## 0.4.0
 #### Changed
 - Remove deprecated APIs.
