@@ -2,11 +2,11 @@
   "name": "vscode-extension-telemetry-wrapper",
   "version": "0.5.0",
   "description": "A module to auto send telemetry for each registered command, using vscode-extension-telemetry.",
-  "main": "./lib/index.js",
+  "main": "./lib/src/index.js",
   "activationEvents": [],
-  "types": "./lib/index.d.ts",
+  "types": "./lib/src/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run prepare && node ./lib/test/runTests.js",
     "prepare": "tsc -p .",
     "watch": "tsc -w -p .",
     "tslint": "tslint -t verbose src/**/*.ts"

@@ -1,1 +1,5 @@
 *.tgz
+lib/test
+.vscode-test
+.vscode
+test

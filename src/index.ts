@@ -117,7 +117,7 @@ export function instrumentOperation(
  * @returns The instrumented callback.
  */
 export function instrumentSimpleOperation(operationName: string, cb: (...args: any[]) => any, thisArg?: any): (...args: any[]) => any {
-    return instrumentOperation(operationName, async (operationId, ...args) => await cb.apply(thisArg, args));
+    return instrumentOperation(operationName, async (operationId, ...args) => await cb.apply(thisArg, args), thisArg /** unnecessary */);
 }
 
 /**

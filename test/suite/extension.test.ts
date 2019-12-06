@@ -37,7 +37,9 @@ suite("Extension Test Suite 1", () => {
         return this.msg + " " + name;
       },
     };
+    const obj2 = { msg: "hi" };
     assert.equal(await instrumentOperation("add", obj.func, obj)("world"), "hello world");
+    assert.equal(await instrumentOperation("add", obj.func, obj2)("world"), "hi world");
     assert.equal(await instrumentOperation("add", obj.func)("world"), undefined);
   });
 
