@@ -24,7 +24,7 @@ interface RichError extends Error {
 
 let isDebug: boolean = false;
 let reporter: TelemetryReporter;
-
+let contextProperties: { [key: string]: string } = {};
 /**
  * Initialize TelemetryReporter by parsing attributes from a JSON file.
  * It reads these attributes: publisher, name, version, aiKey.
@@ -230,7 +230,7 @@ export function sendInfo(
         dimensions = dimensionsOrMeasurements as { [key: string]: string };
         measurements = optionalMeasurements;
     } else {
-        dimensions = {};
+        dimensions = {...contextProperties};
         measurements = {};
         for (const key in dimensionsOrMeasurements) {
             if (typeof dimensionsOrMeasurements[key] === "string") {
@@ -296,6 +296,17 @@ export async function dispose(): Promise<any> {
         return await reporter.dispose();
     }
 }
+
+/**
+ * Add a context property that will be set for all "info" events.
+ * It will be overwritten by the property with the same namem, if it's explicitly set in an event. 
+ * @param name name of context property
+ * @param value value of context property
+ */
+export function addContextProperty(name: string, value: string) {
+    contextProperties[name] = value;
+}
+
 function extractErrorInfo(err?: Error): ErrorInfo {
     if (!err) {
         return {
@@ -316,7 +327,6 @@ function sendEvent(event: TelemetryEvent) {
     if (!reporter) {
         return;
     }
-
     const dimensions: { [key: string]: string } = {};
     for (const key of DimensionEntries) {
         const value = (event as any)[key];

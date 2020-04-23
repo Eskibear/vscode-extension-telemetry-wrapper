@@ -1,4 +1,6 @@
 # Changelog
+## 0.6.0
+- Support to add context properties for all events.
 
 ## 0.5.0
 - Support to specify `thisArg` for the callback.
