@@ -21,22 +21,26 @@ interface RichError extends Error {
     isUserError?: boolean;
     errorCode?: number;
 }
+interface IOptions {
+    firstParty?: boolean;
+    debug?: boolean;
+}
 
 let isDebug: boolean = false;
 let reporter: TelemetryReporter;
-let contextProperties: { [key: string]: string } = {};
+const contextProperties: { [key: string]: string } = {};
 /**
  * Initialize TelemetryReporter by parsing attributes from a JSON file.
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
  * @param debug If set as true, debug information be printed to console.
  */
-export async function initializeFromJsonFile(jsonFilepath: string, debug?: boolean): Promise<void> {
+export async function initializeFromJsonFile(jsonFilepath: string, options?: IOptions): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         fs.exists(jsonFilepath, (exists) => {
             if (exists) {
                 const { publisher, name, version, aiKey } = JSON.parse(fs.readFileSync(jsonFilepath, "utf-8"));
-                initialize(`${publisher}.${name}`, version, aiKey, !!debug);
+                initialize(`${publisher}.${name}`, version, aiKey, options);
                 return resolve();
             } else {
                 return reject(new Error(`The Json file '${jsonFilepath}' does not exist.`));
@@ -52,7 +56,7 @@ export async function initializeFromJsonFile(jsonFilepath: string, debug?: boole
  * @param aiKey Key of Application Insights.
  * @param debug If set as true, debug information be printed to console.
  */
-export function initialize(extensionId: string, version: string, aiKey: string, debug?: boolean): void {
+export function initialize(extensionId: string, version: string, aiKey: string, options?: IOptions): void {
     if (reporter) {
         throw new Error("TelemetryReporter already initialized.");
     }
@@ -60,7 +64,13 @@ export function initialize(extensionId: string, version: string, aiKey: string, 
     if (aiKey) {
         reporter = new TelemetryReporter(extensionId, version, aiKey);
     }
-    isDebug = !!debug;
+
+    if (options && options.firstParty) {
+        // @ts-ignore
+        reporter.firstParty = options.firstParty;
+    }
+
+    isDebug = !!(options && options.debug);
 }
 
 /**
@@ -299,7 +309,7 @@ export async function dispose(): Promise<any> {
 
 /**
  * Add a context property that will be set for all "info" events.
- * It will be overwritten by the property with the same namem, if it's explicitly set in an event. 
+ * It will be overwritten by the property with the same namem, if it's explicitly set in an event.
  * @param name name of context property
  * @param value value of context property
  */
@@ -354,7 +364,11 @@ function sendTelemetryEvent(
     measurements?: {
         [key: string]: number;
     }): void {
-    reporter.sendTelemetryEvent(eventName, dimensions, measurements);
+    if (eventName === EventName.ERROR) { // for GDPR
+        reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements);
+    } else {
+        reporter.sendTelemetryEvent(eventName, dimensions, measurements);
+    }
     if (isDebug) {
         // tslint:disable-next-line:no-console
         console.log(eventName, { eventName, dimensions, measurements });
