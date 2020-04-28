@@ -12,7 +12,7 @@ import {
 
 suite("Extension Test Suite 1", () => {
   vscode.window.showInformationMessage("Start all tests.");
-  initialize("my.ext", "0.1.0", "fakeAIKey", false);
+  initialize("my.ext", "0.1.0", "fakeAIKey", {debug: false});
 
   test("instrumentOperation", async () => {
     const func = (operationId: string, a: any) => (a + 1);
