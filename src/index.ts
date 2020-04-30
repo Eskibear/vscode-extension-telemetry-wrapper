@@ -62,12 +62,8 @@ export function initialize(extensionId: string, version: string, aiKey: string, 
     }
 
     if (aiKey) {
-        reporter = new TelemetryReporter(extensionId, version, aiKey);
-    }
-
-    if (options && options.firstParty) {
-        // @ts-ignore
-        reporter.firstParty = options.firstParty;
+        const firstParty: boolean | undefined = options && options.firstParty;
+        reporter = new TelemetryReporter(extensionId, version, aiKey, firstParty);
     }
 
     isDebug = !!(options && options.debug);
