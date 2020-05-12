@@ -27,7 +27,7 @@ interface IOptions {
 }
 
 let isDebug: boolean = false;
-let reporter: TelemetryReporter;
+let reporters: TelemetryReporter[];
 const contextProperties: { [key: string]: string } = {};
 const SENSITIVE_EVENTS = [EventName.ERROR, EventName.OPERATION_END, EventName.OPERATION_STEP];
 const SENSITIVE_PROPS = ["message", "stack"];
@@ -59,14 +59,18 @@ export async function initializeFromJsonFile(jsonFilepath: string, options?: IOp
  * @param aiKey Key of Application Insights.
  * @param debug If set as true, debug information be printed to console.
  */
-export function initialize(extensionId: string, version: string, aiKey: string, options?: IOptions): void {
-    if (reporter) {
+export function initialize(extensionId: string, version: string, aiKey: string | string[], options?: IOptions): void {
+    if (reporters) {
         throw new Error("TelemetryReporter already initialized.");
     }
 
     if (aiKey) {
         const firstParty: boolean | undefined = options && options.firstParty;
-        reporter = new TelemetryReporter(extensionId, version, aiKey, firstParty);
+        if (aiKey instanceof Array) {
+            reporters = aiKey.map((key: string) => new TelemetryReporter(extensionId, version, key, firstParty));
+        } else {
+            reporters = [new TelemetryReporter(extensionId, version, aiKey, firstParty)];
+        }
     }
 
     isDebug = !!(options && options.debug);
@@ -301,8 +305,8 @@ export function createUuid(): string {
  * Dispose the reporter.
  */
 export async function dispose(): Promise<any> {
-    if (reporter) {
-        return await reporter.dispose();
+    if (reporters) {
+        return await Promise.all(reporters.map((reporter: TelemetryReporter) => reporter.dispose()));
     }
 }
 
@@ -333,7 +337,7 @@ function extractErrorInfo(err?: Error): ErrorInfo {
 }
 
 function sendEvent(event: TelemetryEvent) {
-    if (!reporter) {
+    if (!reporters) {
         return;
     }
     const dimensions: { [key: string]: string } = {};
@@ -364,9 +368,13 @@ function sendTelemetryEvent(
         [key: string]: number;
     }): void {
     if (eventName in SENSITIVE_EVENTS) { // for GDPR
-        reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements, SENSITIVE_PROPS);
+        reporters.forEach((reporter: TelemetryReporter) => {
+            reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements, SENSITIVE_PROPS);
+        });
     } else {
-        reporter.sendTelemetryEvent(eventName, dimensions, measurements);
+        reporters.forEach((reporter: TelemetryReporter) => {
+            reporter.sendTelemetryEvent(eventName, dimensions, measurements);
+        });
     }
     if (isDebug) {
         // tslint:disable-next-line:no-console
