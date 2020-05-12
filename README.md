@@ -4,22 +4,6 @@
 
 Inject code to send telemetry to Application Insight when register commands.
 
-## Version map
-|vscode-extension-telemetry-wrapper|vscode-extension-telemetry| 
-|---|---|
-|0.7.2|^0.1.5|
-|~0.4.0|^0.1.1|
-|~0.3.9|^0.1.1|
-|~0.3.4|^0.1.0|
-|~0.3.2|^0.0.22|
-|0.3.1|^0.0.18|
-|0.2.4|^0.0.18|
-|~~0.2.3 (Deprecated)~~|~~^0.0.17~~|
-|0.2.2|^0.0.17|
-|0.2.1|0.0.10|
-|~0.1.0|0.0.10|
-
-
 ## Usage
 ### Examples
 - Initialize the wrapper on activation.
@@ -69,7 +53,7 @@ Inject code to send telemetry to Application Insight when register commands.
     };
     vscode.commands.registerCommand(name, multiStepTask);
 
-    // with the wrapper. 
+    // with the wrapper.
     // operationId contains a unique Id for each execution of the task.
     const instrumentedMultiStepTask = instrumentOperation(name, (operationId, ...args) => {
         instrumentOperationStep(operationId, "step1", step1)();
@@ -94,7 +78,7 @@ Inject code to send telemetry to Application Insight when register commands.
     try {
         // ...
     } catch (err: Error) {
-        // The error code should be a non-zero integer. 
+        // The error code should be a non-zero integer.
         const ERROR_FILE_NOT_FOUND = 2;
         setErrorCode(err, ERROR_FILE_NOT_FOUND);
         throw(err);
@@ -111,7 +95,7 @@ Inject code to send telemetry to Application Insight when register commands.
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
  */
-function initializeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise<void>;
+function initializeFromJsonFile(jsonFilepath: string, options?: IOptions): Promise<void>;
 
 /**
  * Initialize TelemetryReporter from given attributes.
@@ -119,8 +103,11 @@ function initializeFromJsonFile(jsonFilepath: string, _debug?: boolean): Promise
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
  */
-function initialize(extensionId: string, version: string, aiKey: string, _debug?: boolean): void;
+function initialize(extensionId: string, version: string, aiKey: string, options?: IOptions): void;
 ```
+Note:
+a) if `options.debug` is set `true`, events will be also print to console.
+b) if `options.firstParty` is set `true`, sensitive information will be wiped out from events for GDPR concern.
 </details>
 
 <details><summary>Instrumentation.</summary>
@@ -229,147 +216,3 @@ export function sendInfo(
 function createUuid(): string;
 ```
 </details>
-
-## Usage for 0.2.x (Will be deprecated since 0.4.0)
-
-It sends `commandStart` and `commandEnd` for execution of each the command.
-
-<details>
-<summary>Examples.</summary>
-
-```
-import { TelemetryWrapper } from "vscode-extension-telemetry-wrapper";
-
-// initialize with specific parameters
-TelemetryWrapper.initilize(publisher, extensionName, version, aiKey);
-
-// or directly from Json file, e.g. package.json
-TelemetryWrapper.initilizeFromJsonFile(context.asAbsolutePath("./package.json"));
-```
-
-For compatibility, the legacy `TelemetryReporter` can be accessed by `TelemetryWrapper.getReporter()`.
-
-
-### Previous without wrapper
-
-```
-export function activate(context: vscode.ExtensionContext): void {
-
-    vscode.commands.registerCommand("commandName", 
-        (args: any[]): void => {
-            // TODO
-        }
-    );
-
-}
-```
-
-### Now
-
-**Basic usage**
-
-```
-export function activate(context: vscode.ExtensionContext): void {
-
-    TelemetryWrapper.registerCommand("commandName",
-        (args: any[]): void => {
-            // TODO
-        }
-    );
-
-}
-```
-
-**Send custom usage data during the session**
-```
-export function activate(context: vscode.ExtensionContext): void {
-
-    TelemetryWrapper.registerCommand("commandName",
-        (args: any[]): void => {
-            // TODO: initialize
-            TelemetryWrapper.sendTelemetryEvent(“initializeDone”);
-            // TODO: pre tasks
-            TelemetryWrapper.sendTelemetryEvent("preTasksDone");
-            // TODO: final tasks
-        }
-    );
-
-}
-```
-
-Result:
-
-* publisher.extension/commandStart      {sessionId: xxx}
-* publisher.extension/initilizeDone     {sessionId: xxx}
-* publisher.extension/preTasksDone      {sessionId: xxx}
-* publisher.extension/commandEnd        {sessionId: xxx, exitCode: 0}
-
-
-**Send custom usage data with different log level**
-```
-export function activate(context: vscode.ExtensionContext): void {
-
-    TelemetryWrapper.registerCommand("commandName",
-        (args: any[]): void => {
-            // TODO: initialize
-            TelemetryWrapper.info(“initializeDone”);
-            // TODO: pre tasks with error
-            TelemetryWrapper.error("preTasksNotDone");
-            // TODO: final tasks
-        }
-    );
-}
-```
-Result:
-
-* publisher.extension/commandStart      {sessionId: xxx}
-* publisher.extension/info              {message: "initilizeDone", logLevel: 400, sessionId: xxx}
-* publisher.extension/error             {message: "preTasksDone", logLevel: 200, sessionId: xxx}
-* publisher.extension/commandEnd        {sessionId: xxx, exitCode: 1}
-
-
-**Inject customized properties into the a session**
-```
-export function activate(context: vscode.ExtensionContext): void {
-
-    TelemetryWrapper.registerCommand("commandName",
-        (args: any[]): void => {
-            const t = TelemetryWrapper.currentSession();
-            t.extraProperties.finishedSteps = [];
-            // TODO: initialize
-            t.extraProperties.finishedSteps.push("initialize");
-            // TODO: pre tasks
-            t.extraProperties.finishedSteps.push("preTasks");
-            // TODO: final tasks
-            t.extraProperties.finishedSteps.push("finalTasks");
-        }
-    );
-
-}
-```
-
-Result:
-
-* publisher.extension/commandStart
-    ```
-    {
-        sessionId: xxx
-    }
-    ```
-* publisher.extension/commandEnd
-    ```
-    {
-        sessionId: xxx,
-        exitCode: 0,
-        extra.finishedSteps: [
-            "initialize",
-            "preTasks",
-            "finalTasks"
-        ]
-    }
-    ```
-
-
-</details>
-
-
