@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "uuid": "^3.4.0",
-    "vscode-extension-telemetry": "^0.1.5"
+    "vscode-extension-telemetry": "^0.1.6"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",

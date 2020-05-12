@@ -29,6 +29,9 @@ interface IOptions {
 let isDebug: boolean = false;
 let reporter: TelemetryReporter;
 const contextProperties: { [key: string]: string } = {};
+const SENSITIVE_EVENTS = [EventName.ERROR, EventName.OPERATION_END, EventName.OPERATION_STEP];
+const SENSITIVE_PROPS = ["message", "stack"];
+
 /**
  * Initialize TelemetryReporter by parsing attributes from a JSON file.
  * It reads these attributes: publisher, name, version, aiKey.
@@ -360,8 +363,8 @@ function sendTelemetryEvent(
     measurements?: {
         [key: string]: number;
     }): void {
-    if (eventName === EventName.ERROR) { // for GDPR
-        reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements);
+    if (eventName in SENSITIVE_EVENTS) { // for GDPR
+        reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements, SENSITIVE_PROPS);
     } else {
         reporter.sendTelemetryEvent(eventName, dimensions, measurements);
     }
