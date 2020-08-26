@@ -243,7 +243,7 @@ export function sendInfo(
         dimensions = dimensionsOrMeasurements as { [key: string]: string };
         measurements = optionalMeasurements;
     } else {
-        dimensions = {...contextProperties};
+        dimensions = {};
         measurements = {};
         for (const key in dimensionsOrMeasurements) {
             if (typeof dimensionsOrMeasurements[key] === "string") {
@@ -367,6 +367,7 @@ function sendTelemetryEvent(
     measurements?: {
         [key: string]: number;
     }): void {
+    dimensions = {...contextProperties, ...dimensions};
     if (eventName in SENSITIVE_EVENTS) { // for GDPR
         reporters.forEach((reporter: TelemetryReporter) => {
             reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements, SENSITIVE_PROPS);
