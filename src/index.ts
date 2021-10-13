@@ -113,8 +113,8 @@ export function instrumentOperation(
             sendOperationStart(operationId, operationName);
             return await cb.apply(thisArg, [operationId, ...args]);
         } catch (e) {
-            error = e;
-            sendOperationError(operationId, operationName, e);
+            error = e as Error;
+            sendOperationError(operationId, operationName, error);
         } finally {
             const duration = Date.now() - startAt;
             sendOperationEnd(operationId, operationName, duration, error);
@@ -278,7 +278,7 @@ export function instrumentOperationStep(
         try {
             return await cb(...args);
         } catch (e) {
-            error = e;
+            error = e as Error;
             throw e;
         } finally {
             const event: OperationStepEvent = {
