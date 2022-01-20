@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as uuidv4 from "uuid/v4";
 import * as vscode from "vscode";
-import TelemetryReporter from "vscode-extension-telemetry";
+import TelemetryReporter from "@vscode/extension-telemetry";
 import {
     DimensionEntries,
     ErrorCodes,
