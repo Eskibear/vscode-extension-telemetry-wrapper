@@ -26,9 +26,15 @@ interface IOptions {
     debug?: boolean;
 }
 
+interface ReplacementRule {
+    pattern: RegExp;
+    replace: string;
+}
+
 let isDebug: boolean = false;
 let reporters: TelemetryReporter[];
 const contextProperties: { [key: string]: string } = {};
+const replacementRules: ReplacementRule[] = [];
 const SENSITIVE_EVENTS = [EventName.ERROR, EventName.OPERATION_END, EventName.OPERATION_STEP];
 const SENSITIVE_PROPS = ["message", "stack"];
 
@@ -312,12 +318,28 @@ export async function dispose(): Promise<any> {
 
 /**
  * Add a context property that will be set for all "info" events.
- * It will be overwritten by the property with the same namem, if it's explicitly set in an event.
+ * It will be overwritten by the property with the same name, if it's explicitly set in an event.
  * @param name name of context property
  * @param value value of context property
  */
 export function addContextProperty(name: string, value: string) {
     contextProperties[name] = value;
+}
+
+
+/**
+ * Add a replacement rule that will be applied to all properties. Useful when you want to wipe sensitive data.
+ * 
+ * Note: rules will not affect context properties.
+ * 
+ * @param pattern RegExp pattern to search
+ * @param replaceString target string to repalce matched parts
+ */
+export function addReplacementRule(pattern: RegExp, replaceString?: string) {
+    replacementRules.push({
+        pattern,
+        replace: replaceString ?? ""
+    });
 }
 
 function extractErrorInfo(err?: Error): ErrorInfo {
@@ -367,7 +389,14 @@ function sendTelemetryEvent(
     measurements?: {
         [key: string]: number;
     }): void {
+    // add context props
     dimensions = {...contextProperties, ...dimensions};
+    
+    // apply replacement rules
+    for (const k of Object.keys(dimensions)){
+        dimensions[k] = applyRules(replacementRules, dimensions[k]);
+    }
+
     if (eventName in SENSITIVE_EVENTS) { // for GDPR
         reporters.forEach((reporter: TelemetryReporter) => {
             reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements, SENSITIVE_PROPS);
@@ -381,4 +410,11 @@ function sendTelemetryEvent(
         // tslint:disable-next-line:no-console
         console.log(eventName, { eventName, dimensions, measurements });
     }
+}
+
+function applyRules(rules: ReplacementRule[], content: string): string {
+    for(const rule of rules) {
+        content = content.replace(rule.pattern, rule.replace);
+    }
+    return content;
 }
