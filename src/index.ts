@@ -389,13 +389,14 @@ function sendTelemetryEvent(
     measurements?: {
         [key: string]: number;
     }): void {
-    // add context props
-    dimensions = {...contextProperties, ...dimensions};
-    
+
     // apply replacement rules
+    dimensions = dimensions ?? {};
     for (const k of Object.keys(dimensions)){
         dimensions[k] = applyRules(replacementRules, dimensions[k]);
     }
+    // add context props
+    dimensions = {...contextProperties, ...dimensions};
 
     if (eventName in SENSITIVE_EVENTS) { // for GDPR
         reporters.forEach((reporter: TelemetryReporter) => {
