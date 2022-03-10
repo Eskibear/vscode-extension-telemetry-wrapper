@@ -3,3 +3,6 @@ lib/test
 .vscode-test
 .vscode
 test
+src/*.ts
+tslint.json
+tsconfig.json
