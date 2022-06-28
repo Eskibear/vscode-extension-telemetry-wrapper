@@ -36,26 +36,21 @@ let reporters: TelemetryReporter[];
 const contextProperties: { [key: string]: string } = {};
 const replacementRules: ReplacementRule[] = [];
 const SENSITIVE_EVENTS = [EventName.ERROR, EventName.OPERATION_END, EventName.OPERATION_STEP];
-const SENSITIVE_PROPS = ["message", "stack"];
 
 /**
  * Initialize TelemetryReporter by parsing attributes from a JSON file.
  * It reads these attributes: publisher, name, version, aiKey.
  * @param jsonFilepath absolute path of a JSON file.
- * @param debug If set as true, debug information be printed to console.
+ * @param options debug: if set as true, debug information be printed to console.
  */
 export async function initializeFromJsonFile(jsonFilepath: string, options?: IOptions): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        fs.exists(jsonFilepath, (exists) => {
-            if (exists) {
-                const { publisher, name, version, aiKey } = JSON.parse(fs.readFileSync(jsonFilepath, "utf-8"));
-                initialize(`${publisher}.${name}`, version, aiKey, options);
-                return resolve();
-            } else {
-                return reject(new Error(`The Json file '${jsonFilepath}' does not exist.`));
-            }
-        });
-    });
+    try {
+        await fs.promises.access(jsonFilepath);
+        const { publisher, name, version, aiKey } = JSON.parse(fs.readFileSync(jsonFilepath, "utf-8"));
+        initialize(`${publisher}.${name}`, version, aiKey, options);
+    } catch (error) {
+        throw new Error(`The JSON file '${jsonFilepath}' does not exist.`);
+    }
 }
 
 /**
@@ -63,7 +58,7 @@ export async function initializeFromJsonFile(jsonFilepath: string, options?: IOp
  * @param extensionId Identifier of the extension, used as prefix of EventName in telemetry data.
  * @param version Version of the extension.
  * @param aiKey Key of Application Insights.
- * @param debug If set as true, debug information be printed to console.
+ * @param options debug: if set as true, debug information be printed to console.
  */
 export function initialize(extensionId: string, version: string, aiKey: string | string[], options?: IOptions): void {
     if (reporters) {
@@ -329,9 +324,9 @@ export function addContextProperty(name: string, value: string) {
 
 /**
  * Add a replacement rule that will be applied to all properties. Useful when you want to wipe sensitive data.
- * 
+ *
  * Note: rules will not affect context properties.
- * 
+ *
  * @param pattern RegExp pattern to search
  * @param replaceString target string to repalce matched parts
  */
@@ -400,7 +395,7 @@ function sendTelemetryEvent(
 
     if (eventName in SENSITIVE_EVENTS) { // for GDPR
         reporters.forEach((reporter: TelemetryReporter) => {
-            reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements, SENSITIVE_PROPS);
+            reporter.sendTelemetryErrorEvent(eventName, dimensions, measurements);
         });
     } else {
         reporters.forEach((reporter: TelemetryReporter) => {
