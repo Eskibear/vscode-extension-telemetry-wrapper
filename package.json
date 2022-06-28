@@ -1,6 +1,6 @@
 {
   "name": "vscode-extension-telemetry-wrapper",
-  "version": "0.12.0",
+  "version": "0.13.1",
   "description": "A module to auto send telemetry for each registered command in unified format, using @vscode/extension-telemetry.",
   "main": "./lib/src/index.js",
   "activationEvents": [],
@@ -22,13 +22,13 @@
   },
   "dependencies": {
     "@vscode/extension-telemetry": "^0.6.2",
-    "uuid": "^3.4.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "^10.17.60",
-    "@types/uuid": "^3.4.10",
+    "@types/uuid": "^8.3.4",
     "@types/vscode": "1.14.0",
     "glob": "^7.2.3",
     "mocha": "^9.2.2",
