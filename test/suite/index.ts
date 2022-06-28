@@ -5,9 +5,10 @@ import * as glob from 'glob';
 export function run(testsRoot: string, cb: (error: any, failures?: number) => void): void {
   // Create the mocha test
   const mocha = new Mocha({
-    ui: 'tdd',
+    ui: "tdd",
+    color: true,
+    timeout: 1 * 60 * 1000,
   });
-  mocha.useColors(true);
 
   glob('**/**.test.js', { cwd: testsRoot }, (err: any, files: any[]) => {
     if (err) {
