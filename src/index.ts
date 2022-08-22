@@ -415,6 +415,7 @@ function sendTelemetryEvent(
         });
     }
     if (isDebug) {
+        Output.getInstance().appendLine(`>> ${(new Date()).toISOString()}`);
         Output.getInstance().appendLine(JSON.stringify({ eventName, dimensions, measurements }, null, 2));
     }
 }
