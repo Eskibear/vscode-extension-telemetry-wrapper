@@ -106,7 +106,7 @@ function initializeFromJsonFile(jsonFilepath: string, options?: IOptions): Promi
 function initialize(extensionId: string, version: string, aiKey: string, options?: IOptions): void;
 ```
 Note:
-a) if `options.debug` is set `true`, events will be also print to console.
+a) if `options.debug` or `process.env.DEBUG_TELEMETRY` is set to `true`, events will be also print to Output `Telemetry Wrapper`.
 b) if `options.firstParty` is set `true`, sensitive information will be wiped out from events for GDPR concern.
 </details>
 
