@@ -237,6 +237,11 @@ export function sendInfo(
     dimensionsOrMeasurements: { [key: string]: string } | { [key: string]: string | number },
     optionalMeasurements?: { [key: string]: number },
 ): void {
+    if (!reporters) {
+        console.warn("TelemetryReporter not initialized.");
+        return;
+    }
+
     let dimensions: { [key: string]: string };
     let measurements: { [key: string]: number };
 
@@ -355,6 +360,7 @@ function extractErrorInfo(err?: Error): ErrorInfo {
 
 function sendEvent(event: TelemetryEvent) {
     if (!reporters) {
+        console.warn("TelemetryReporter not initialized.");
         return;
     }
     const dimensions: { [key: string]: string } = {};
@@ -385,9 +391,14 @@ function sendTelemetryEvent(
         [key: string]: number;
     }): void {
 
+    if (!reporters) {
+        console.warn("TelemetryReporter not initialized.");
+        return;
+    }
+
     // apply replacement rules
     dimensions = dimensions ?? {};
-    for (const k of Object.keys(dimensions)){
+    for (const k of Object.keys(dimensions)) {
         dimensions[k] = applyRules(replacementRules, dimensions[k]);
     }
     // add context props
