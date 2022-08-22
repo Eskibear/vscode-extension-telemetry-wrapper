@@ -16,6 +16,7 @@ import {
     OperationStepEvent,
     TelemetryEvent,
 } from "./event";
+import { Output } from "./output";
 
 interface RichError extends Error {
     isUserError?: boolean;
@@ -74,7 +75,7 @@ export function initialize(extensionId: string, version: string, aiKey: string |
         }
     }
 
-    isDebug = !!(options && options.debug);
+    isDebug = !!(options && options.debug) || process.env.DEBUG_TELEMETRY === "true";
 }
 
 /**
@@ -414,8 +415,8 @@ function sendTelemetryEvent(
         });
     }
     if (isDebug) {
-        // tslint:disable-next-line:no-console
-        console.log(eventName, { eventName, dimensions, measurements });
+        Output.getInstance().appendLine(`>> ${(new Date()).toISOString()}`);
+        Output.getInstance().appendLine(JSON.stringify({ eventName, dimensions, measurements }, null, 2));
     }
 }
 
