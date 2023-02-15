@@ -75,6 +75,7 @@ export function initialize(extensionId: string, version: string, aiKey: string |
         }
     }
 
+    Output.setExtensionId(extensionId);
     isDebug = !!(options && options.debug) || process.env.DEBUG_TELEMETRY === "true";
 }
 
