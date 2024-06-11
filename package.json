@@ -1,6 +1,6 @@
 {
   "name": "vscode-extension-telemetry-wrapper",
-  "version": "0.13.3",
+  "version": "0.14.0",
   "description": "A module to auto send telemetry for each registered command in unified format, using @vscode/extension-telemetry.",
   "main": "./lib/src/index.js",
   "activationEvents": [],
@@ -10,9 +10,6 @@
     "prepare": "tsc -p .",
     "watch": "tsc -w -p .",
     "tslint": "tslint -t verbose src/**/*.ts"
-  },
-  "engines": {
-    "vscode": "^1.14.0"
   },
   "author": "eskibear",
   "license": "MIT",
