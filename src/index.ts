@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as uuid from "uuid";
 import * as vscode from "vscode";
-import TelemetryReporter from "@vscode/extension-telemetry";
+import TelemetryReporter, { ReplacementOption } from "@vscode/extension-telemetry";
 import {
     DimensionEntries,
     ErrorCodes,
@@ -23,7 +23,11 @@ interface RichError extends Error {
     errorCode?: number;
 }
 interface IOptions {
+    /**
+     * @deprecated This field is deprecated and will not have any effect.
+     */
     firstParty?: boolean;
+    replacementOptions?: ReplacementOption[]
     debug?: boolean;
 }
 
@@ -44,11 +48,14 @@ const SENSITIVE_EVENTS = [EventName.ERROR, EventName.OPERATION_END, EventName.OP
  * @param jsonFilepath absolute path of a JSON file.
  * @param options debug: if set as true, debug information be printed to console.
  */
+
+export { ReplacementOption } from "@vscode/extension-telemetry";
+
 export async function initializeFromJsonFile(jsonFilepath: string, options?: IOptions): Promise<void> {
     try {
         await fs.promises.access(jsonFilepath);
-        const { publisher, name, version, aiKey } = JSON.parse(fs.readFileSync(jsonFilepath, "utf-8"));
-        initialize(`${publisher}.${name}`, version, aiKey, options);
+        const { publisher, name, aiKey } = JSON.parse(fs.readFileSync(jsonFilepath, "utf-8"));
+        initialize(`${publisher}.${name}`, "", aiKey, options);
     } catch (error) {
         throw new Error(`The JSON file '${jsonFilepath}' does not exist.`);
     }
@@ -57,21 +64,20 @@ export async function initializeFromJsonFile(jsonFilepath: string, options?: IOp
 /**
  * Initialize TelemetryReporter from given attributes.
  * @param extensionId Identifier of the extension, used as prefix of EventName in telemetry data.
- * @param version Version of the extension.
+ * @param version Version of the extension. (Deprecated, will not have any effect)
  * @param aiKey Key of Application Insights.
  * @param options debug: if set as true, debug information be printed to console.
  */
-export function initialize(extensionId: string, version: string, aiKey: string | string[], options?: IOptions): void {
+export function initialize(extensionId: string, _version: string, aiKey: string | string[], options?: IOptions): void {
     if (reporters) {
         throw new Error("TelemetryReporter already initialized.");
     }
 
     if (aiKey) {
-        const firstParty: boolean | undefined = options && options.firstParty;
         if (aiKey instanceof Array) {
-            reporters = aiKey.map((key: string) => new TelemetryReporter(extensionId, version, key, firstParty));
+            reporters = aiKey.map((key: string) => new TelemetryReporter(key, options?.replacementOptions));
         } else {
-            reporters = [new TelemetryReporter(extensionId, version, aiKey, firstParty)];
+            reporters = [new TelemetryReporter(aiKey, options?.replacementOptions)];
         }
     }
 
@@ -330,6 +336,7 @@ export function addContextProperty(name: string, value: string) {
 
 
 /**
+ * @deprecated This method is deprecated. Use replacementOptions in IOptions instead.
  * Add a replacement rule that will be applied to all properties. Useful when you want to wipe sensitive data.
  *
  * Note: rules will not affect context properties.
