@@ -18,7 +18,7 @@
     "url": "https://github.com/Eskibear/vscode-extension-telemetry-wrapper.git"
   },
   "dependencies": {
-    "@vscode/extension-telemetry": "^0.9.6",
+    "@vscode/extension-telemetry": "^1.2.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
