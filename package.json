@@ -1,6 +1,6 @@
 {
   "name": "vscode-extension-telemetry-wrapper",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "A module to auto send telemetry for each registered command in unified format, using @vscode/extension-telemetry.",
   "main": "./lib/src/index.js",
   "activationEvents": [],
@@ -18,6 +18,7 @@
     "url": "https://github.com/Eskibear/vscode-extension-telemetry-wrapper.git"
   },
   "dependencies": {
+    "@microsoft/applicationinsights-common": "^3.4.1",
     "@vscode/extension-telemetry": "^1.2.0"
   },
   "devDependencies": {
