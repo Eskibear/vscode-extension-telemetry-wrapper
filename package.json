@@ -18,7 +18,7 @@
     "url": "https://github.com/Eskibear/vscode-extension-telemetry-wrapper.git"
   },
   "dependencies": {
-    "@microsoft/applicationinsights-common": "npm:@microsoft/applicationinsights-core-js@^3.4.1",
+    "@microsoft/applicationinsights-common": "^3.4.1",
     "@vscode/extension-telemetry": "^1.2.0"
   },
   "devDependencies": {
