@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import * as uuid from "uuid";
+import * as crypto from "crypto";
 import * as vscode from "vscode";
 import { TelemetryReporter, ReplacementOption } from "@vscode/extension-telemetry";
 import {
@@ -309,10 +309,10 @@ export function instrumentOperationStep(
 }
 
 /**
- * Create a UUID string using uuid.v4().
+ * Create a UUID string.
  */
 export function createUuid(): string {
-    return uuid.v4();
+    return crypto.randomUUID();
 }
 
 /**
